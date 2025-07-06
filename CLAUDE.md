@@ -23,6 +23,7 @@ task mocks
 # Code quality
 task format    # Format with goimports
 task lint      # Run golangci-lint
+task formula-lint    # Validate generated Homebrew formula
 ```
 
 ### Direct Go Commands
@@ -100,6 +101,7 @@ internal/
 - `BuilderService`: Cross-platform build orchestration
 - `ArchiverService`: Archive creation (tar.gz/zip)
 - `ConfigService`: Configuration management
+- `FormulaService`: Homebrew Formula generation for tap repositories
 
 ### Command Pattern
 Each CLI command follows this pattern:
@@ -131,12 +133,13 @@ func NewExampleCommand() *cobra.Command {
 
 The tool uses `.gorocket.yaml` for configuration:
 - `build.targets`: Array of OS/architecture combinations to build
+- `brew.repository`: Optional Homebrew tap repository configuration (owner/name)
 - Default config is embedded in `providers/config_default.yaml`
 - Configuration is managed through `ConfigService`
 
 ## Testing Strategy
 
-- **Unit tests** use auto-generated mocks from `internal/providers/mocks/`
+- **Unit tests** use auto-generated mocks from `internal/providers/mocks/` and `internal/services/mocks/`
 - **Mock generation** via `mockery` command using `.mockery.yml` configuration
 - **testify/assert** for assertions and **testify/mock** for mocking
 - **No file system side effects** in tests - all I/O is mocked
@@ -160,6 +163,7 @@ mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
 - Uses `git describe --tags --exact-match HEAD` to get version
 - Builds to `dist/` directory (must be empty before build unless --clean flag is used)
 - Creates archives with consistent naming: `{module}_{version}_{os}_{arch}.{ext}`
+- Generates Homebrew Formula (.rb file) when `brew.repository` is configured
 
 ## Available Commands
 
@@ -181,4 +185,14 @@ mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
 The project uses go-task for common development workflows. All tasks are defined in `Taskfile.yml`:
 - Prefer `task <command>` over direct go commands
 - Use `task --list` to see all available tasks
-- Essential tasks: `build`, `test`, `test-coverage`, `mocks`, `format`, `lint`
+- Essential tasks: `build`, `test`, `test-coverage`, `mocks`, `format`, `lint`, `formula-lint`
+
+## Homebrew Formula Generation
+
+The tool can generate Homebrew Formula files for tap repositories:
+
+- **Configuration**: Add `brew.repository` section to `.gorocket.yaml` with owner/name
+- **Formula Generation**: Automatically creates `.rb` file during build when brew config exists
+- **Quality Assurance**: Use `task formula-lint` to validate generated Formula files
+- **Ruby Compliance**: Generated formulas include Sorbet typing and follow Ruby style guidelines
+- **Cross-platform**: Supports macOS (Intel/Apple Silicon) and Linux architectures

@@ -2,6 +2,7 @@ package providers
 
 import (
 	"bufio"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
@@ -20,6 +21,7 @@ type FileSystemProvider interface {
 	RemoveAll(path string) error
 	GetModuleName() (string, error)
 	EnsureDistDir(clean bool) error
+	CalculateSHA256(path string) (string, error)
 }
 
 type fileSystemProvider struct{}
@@ -110,4 +112,19 @@ func (f *fileSystemProvider) EnsureDistDir(clean bool) error {
 	}
 
 	return nil
+}
+
+func (f *fileSystemProvider) CalculateSHA256(path string) (string, error) {
+	file, err := f.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = file.Close() }()
+
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, file); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%x", hasher.Sum(nil)), nil
 }

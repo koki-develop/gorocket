@@ -21,3 +21,15 @@ type BuildInfo struct {
 	ModuleName string
 	Version    string
 }
+
+type FormulaInfo struct {
+	ModuleName   string
+	Version      string
+	Repository   Repository
+	PlatformURLs map[string]map[string]FormulaURL
+}
+
+type FormulaURL struct {
+	URL    string
+	SHA256 string
+}

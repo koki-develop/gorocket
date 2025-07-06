@@ -15,6 +15,7 @@ type BuildCommand struct {
 	builderService  services.BuilderService
 	archiverService services.ArchiverService
 	configService   services.ConfigService
+	formulaService  services.FormulaService
 	fsProvider      providers.FileSystemProvider
 	flagClean       bool
 }
@@ -28,12 +29,14 @@ func NewBuildCommand() *cobra.Command {
 	builderService := services.NewBuilderService(commandProvider, fsProvider)
 	archiverService := services.NewArchiverService(fsProvider)
 	configService := services.NewConfigService(fsProvider)
+	formulaService := services.NewFormulaService(fsProvider)
 
 	buildCmd := &BuildCommand{
 		versionService:  versionService,
 		builderService:  builderService,
 		archiverService: archiverService,
 		configService:   configService,
+		formulaService:  formulaService,
 		fsProvider:      fsProvider,
 	}
 
@@ -100,6 +103,14 @@ func (bc *BuildCommand) run(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("failed to remove binary file: %w", err)
 			}
 		}
+	}
+
+	if cfg.Brew != nil {
+		fmt.Println("Generating Homebrew Formula...")
+		if err := bc.formulaService.GenerateFormula(*buildInfo, archiveResults, *cfg.Brew); err != nil {
+			return fmt.Errorf("failed to generate formula: %w", err)
+		}
+		fmt.Printf("Created %s.rb\n", buildInfo.ModuleName)
 	}
 
 	fmt.Println("Build completed successfully!")

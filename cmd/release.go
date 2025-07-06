@@ -44,7 +44,7 @@ func NewReleaseCommand() *cobra.Command {
 		builderService := services.NewBuilderService(commandProvider, fsProvider)
 		archiverService := services.NewArchiverService(fsProvider)
 		configService := services.NewConfigService(fsProvider)
-		formulaService := services.NewFormulaService(fsProvider)
+		formulaService := services.NewFormulaService(fsProvider, gitProvider)
 
 		buildCmd := &BuildCommand{
 			versionService:  versionService,

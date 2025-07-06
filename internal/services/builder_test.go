@@ -67,7 +67,7 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 			}
-			
+
 			assert.Len(t, results, tt.expectedResults)
 
 			for _, result := range results {

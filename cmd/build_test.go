@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
 func TestBuildCommand_FormulaGeneration(t *testing.T) {
 	tests := []struct {
 		name               string

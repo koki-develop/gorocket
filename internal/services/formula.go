@@ -14,12 +14,14 @@ type FormulaService interface {
 }
 
 type formulaService struct {
-	fsProvider providers.FileSystemProvider
+	fsProvider  providers.FileSystemProvider
+	gitProvider providers.GitProvider
 }
 
-func NewFormulaService(fsProvider providers.FileSystemProvider) FormulaService {
+func NewFormulaService(fsProvider providers.FileSystemProvider, gitProvider providers.GitProvider) FormulaService {
 	return &formulaService{
-		fsProvider: fsProvider,
+		fsProvider:  fsProvider,
+		gitProvider: gitProvider,
 	}
 }
 
@@ -46,6 +48,12 @@ func (s *formulaService) GenerateFormula(buildInfo models.BuildInfo, archiveResu
 }
 
 func (s *formulaService) buildFormulaInfo(buildInfo models.BuildInfo, archiveResults []models.ArchiveResult, brewConfig models.BrewConfig) (models.FormulaInfo, error) {
+	// Get actual repository information (not brew tap repository)
+	appRepo, err := s.gitProvider.GetGitHubRepository()
+	if err != nil {
+		return models.FormulaInfo{}, fmt.Errorf("failed to get application repository info: %w", err)
+	}
+
 	platformURLs := make(map[string]map[string]models.FormulaURL)
 
 	for _, result := range archiveResults {
@@ -63,7 +71,7 @@ func (s *formulaService) buildFormulaInfo(buildInfo models.BuildInfo, archiveRes
 
 		archiveFileName := filepath.Base(result.ArchivePath)
 		downloadURL := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s",
-			brewConfig.Repository.Owner, brewConfig.Repository.Name, buildInfo.Version, archiveFileName)
+			appRepo.Owner, appRepo.Name, buildInfo.Version, archiveFileName)
 
 		os := result.Target.OS
 		arch := result.Target.Arch

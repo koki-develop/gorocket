@@ -19,7 +19,7 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 		buildInfo      models.BuildInfo
 		archiveResults []models.ArchiveResult
 		brewConfig     models.BrewConfig
-		setupMocks     func(*mocks.MockFileSystemProvider)
+		setupMocks     func(*mocks.MockFileSystemProvider, *mocks.MockGitProvider)
 		wantErr        bool
 	}{
 		{
@@ -52,7 +52,11 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 					Name:  "gorocket",
 				},
 			},
-			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
+			setupMocks: func(mockFS *mocks.MockFileSystemProvider, mockGit *mocks.MockGitProvider) {
+				mockGit.EXPECT().GetGitHubRepository().Return(&models.GitHubRepository{
+					Owner: "koki-develop",
+					Name:  "gorocket",
+				}, nil).Once()
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil).Once()
 				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil).Once()
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil).Once()
@@ -105,7 +109,11 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 					Name:  "gorocket",
 				},
 			},
-			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
+			setupMocks: func(mockFS *mocks.MockFileSystemProvider, mockGit *mocks.MockGitProvider) {
+				mockGit.EXPECT().GetGitHubRepository().Return(&models.GitHubRepository{
+					Owner: "koki-develop",
+					Name:  "gorocket",
+				}, nil)
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil)
 				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil)
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil)
@@ -140,7 +148,11 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 					Name:  "gorocket",
 				},
 			},
-			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
+			setupMocks: func(mockFS *mocks.MockFileSystemProvider, mockGit *mocks.MockGitProvider) {
+				mockGit.EXPECT().GetGitHubRepository().Return(&models.GitHubRepository{
+					Owner: "koki-develop",
+					Name:  "gorocket",
+				}, nil)
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(nil, fmt.Errorf("file not found"))
 			},
 			wantErr: true,
@@ -163,7 +175,11 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 					Name:  "gorocket",
 				},
 			},
-			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
+			setupMocks: func(mockFS *mocks.MockFileSystemProvider, mockGit *mocks.MockGitProvider) {
+				mockGit.EXPECT().GetGitHubRepository().Return(&models.GitHubRepository{
+					Owner: "koki-develop",
+					Name:  "gorocket",
+				}, nil)
 				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content")), nil)
 				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil)
 				mockFS.EXPECT().WriteFile(
@@ -174,14 +190,38 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 			},
 			wantErr: true,
 		},
+		{
+			name: "git repository error",
+			buildInfo: models.BuildInfo{
+				ModuleName: "gorocket",
+				Version:    "v1.0.0",
+			},
+			archiveResults: []models.ArchiveResult{
+				{
+					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
+					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
+				},
+			},
+			brewConfig: models.BrewConfig{
+				Repository: models.Repository{
+					Owner: "koki-develop",
+					Name:  "gorocket",
+				},
+			},
+			setupMocks: func(mockFS *mocks.MockFileSystemProvider, mockGit *mocks.MockGitProvider) {
+				mockGit.EXPECT().GetGitHubRepository().Return(nil, fmt.Errorf("git repository not found"))
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
-			tt.setupMocks(mockFS)
+			mockGit := mocks.NewMockGitProvider(t)
+			tt.setupMocks(mockFS, mockGit)
 
-			service := NewFormulaService(mockFS)
+			service := NewFormulaService(mockFS, mockGit)
 			err := service.GenerateFormula(tt.buildInfo, tt.archiveResults, tt.brewConfig)
 
 			if tt.wantErr {
@@ -195,7 +235,8 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 
 func TestFormulaService_buildFormulaInfo(t *testing.T) {
 	mockFS := mocks.NewMockFileSystemProvider(t)
-	service := &formulaService{fsProvider: mockFS}
+	mockGit := mocks.NewMockGitProvider(t)
+	service := &formulaService{fsProvider: mockFS, gitProvider: mockGit}
 
 	buildInfo := models.BuildInfo{
 		ModuleName: "gorocket",
@@ -220,6 +261,10 @@ func TestFormulaService_buildFormulaInfo(t *testing.T) {
 		},
 	}
 
+	mockGit.EXPECT().GetGitHubRepository().Return(&models.GitHubRepository{
+		Owner: "koki-develop",
+		Name:  "gorocket",
+	}, nil).Once()
 	mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil).Once()
 	mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil).Once()
 	mockFS.EXPECT().Open("dist/gorocket_v1.0.0_linux_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil).Once()

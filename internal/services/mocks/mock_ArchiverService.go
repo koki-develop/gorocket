@@ -37,7 +37,7 @@ func (_m *MockArchiverService) EXPECT() *MockArchiverService_Expecter {
 }
 
 // CreateArchive provides a mock function for the type MockArchiverService
-func (_mock *MockArchiverService) CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) models.ArchiveResult {
+func (_mock *MockArchiverService) CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) (models.ArchiveResult, error) {
 	ret := _mock.Called(buildInfo, buildResult)
 
 	if len(ret) == 0 {
@@ -45,12 +45,21 @@ func (_mock *MockArchiverService) CreateArchive(buildInfo *models.BuildInfo, bui
 	}
 
 	var r0 models.ArchiveResult
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, models.BuildResult) (models.ArchiveResult, error)); ok {
+		return returnFunc(buildInfo, buildResult)
+	}
 	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, models.BuildResult) models.ArchiveResult); ok {
 		r0 = returnFunc(buildInfo, buildResult)
 	} else {
 		r0 = ret.Get(0).(models.ArchiveResult)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(*models.BuildInfo, models.BuildResult) error); ok {
+		r1 = returnFunc(buildInfo, buildResult)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockArchiverService_CreateArchive_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateArchive'
@@ -83,12 +92,12 @@ func (_c *MockArchiverService_CreateArchive_Call) Run(run func(buildInfo *models
 	return _c
 }
 
-func (_c *MockArchiverService_CreateArchive_Call) Return(archiveResult models.ArchiveResult) *MockArchiverService_CreateArchive_Call {
-	_c.Call.Return(archiveResult)
+func (_c *MockArchiverService_CreateArchive_Call) Return(archiveResult models.ArchiveResult, err error) *MockArchiverService_CreateArchive_Call {
+	_c.Call.Return(archiveResult, err)
 	return _c
 }
 
-func (_c *MockArchiverService_CreateArchive_Call) RunAndReturn(run func(buildInfo *models.BuildInfo, buildResult models.BuildResult) models.ArchiveResult) *MockArchiverService_CreateArchive_Call {
+func (_c *MockArchiverService_CreateArchive_Call) RunAndReturn(run func(buildInfo *models.BuildInfo, buildResult models.BuildResult) (models.ArchiveResult, error)) *MockArchiverService_CreateArchive_Call {
 	_c.Call.Return(run)
 	return _c
 }

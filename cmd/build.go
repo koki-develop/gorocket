@@ -90,9 +90,6 @@ func (bc *BuildCommand) RunBuildWithResults() ([]models.ArchiveResult, error) {
 	}
 
 	for _, result := range buildResults {
-		if result.Error != nil {
-			return nil, fmt.Errorf("failed to build target %s/%s: %w", result.Target.OS, result.Target.Arch, result.Error)
-		}
 		fmt.Printf("Building for %s/%s... Done\n", result.Target.OS, result.Target.Arch)
 	}
 
@@ -102,17 +99,12 @@ func (bc *BuildCommand) RunBuildWithResults() ([]models.ArchiveResult, error) {
 	}
 
 	for _, result := range archiveResults {
-		if result.Error != nil {
-			return nil, fmt.Errorf("failed to create archive for %s/%s: %w", result.Target.OS, result.Target.Arch, result.Error)
-		}
 		fmt.Printf("Created %s\n", filepath.Base(result.ArchivePath))
 	}
 
 	for _, buildResult := range buildResults {
-		if buildResult.Error == nil {
-			if err := bc.fsProvider.Remove(buildResult.BinaryPath); err != nil {
-				return nil, fmt.Errorf("failed to remove binary file: %w", err)
-			}
+		if err := bc.fsProvider.Remove(buildResult.BinaryPath); err != nil {
+			return nil, fmt.Errorf("failed to remove binary file: %w", err)
 		}
 	}
 

@@ -104,14 +104,12 @@ func (rc *ReleaseCommand) run() error {
 	var releaseURL string
 	var assets []models.ReleaseAsset
 
-	// Collect archive files from build results (strict and safe)
+	// Collect archive files from build results
 	for _, result := range archiveResults {
-		if result.Error == nil {
-			assets = append(assets, models.ReleaseAsset{
-				Name: filepath.Base(result.ArchivePath),
-				Path: result.ArchivePath,
-			})
-		}
+		assets = append(assets, models.ReleaseAsset{
+			Name: filepath.Base(result.ArchivePath),
+			Path: result.ArchivePath,
+		})
 	}
 
 	if !releaseExists {

@@ -9,13 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/koki-develop/gorocket/internal/models"
 	"github.com/koki-develop/gorocket/internal/providers"
 )
 
 type ArchiverService interface {
 	CreateArchives(buildInfo *models.BuildInfo, buildResults []models.BuildResult) ([]models.ArchiveResult, error)
-	CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) models.ArchiveResult
+	CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) (models.ArchiveResult, error)
 }
 
 type archiverService struct {
@@ -30,24 +31,25 @@ func NewArchiverService(fileSystemProvider providers.FileSystemProvider) Archive
 
 func (a *archiverService) CreateArchives(buildInfo *models.BuildInfo, buildResults []models.BuildResult) ([]models.ArchiveResult, error) {
 	var results []models.ArchiveResult
+	var errGroup *multierror.Error
 
 	for _, buildResult := range buildResults {
-		if buildResult.Error != nil {
-			results = append(results, models.ArchiveResult{
-				Target: buildResult.Target,
-				Error:  buildResult.Error,
-			})
+		archiveResult, err := a.CreateArchive(buildInfo, buildResult)
+		if err != nil {
+			errGroup = multierror.Append(errGroup, err)
 			continue
 		}
-
-		archiveResult := a.CreateArchive(buildInfo, buildResult)
 		results = append(results, archiveResult)
+	}
+
+	if err := errGroup.ErrorOrNil(); err != nil {
+		return nil, err
 	}
 
 	return results, nil
 }
 
-func (a *archiverService) CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) models.ArchiveResult {
+func (a *archiverService) CreateArchive(buildInfo *models.BuildInfo, buildResult models.BuildResult) (models.ArchiveResult, error) {
 	var archiveName string
 	var archivePath string
 	var err error
@@ -60,11 +62,14 @@ func (a *archiverService) CreateArchive(buildInfo *models.BuildInfo, buildResult
 		archivePath, err = a.createTarGzArchive(buildResult.BinaryPath, archiveName, buildInfo, buildResult.Target)
 	}
 
+	if err != nil {
+		return models.ArchiveResult{}, err
+	}
+
 	return models.ArchiveResult{
 		Target:      buildResult.Target,
 		ArchivePath: archivePath,
-		Error:       err,
-	}
+	}, nil
 }
 
 func (a *archiverService) createTarGzArchive(binaryPath, archiveName string, buildInfo *models.BuildInfo, target models.BuildTarget) (string, error) {

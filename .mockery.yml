@@ -17,3 +17,10 @@ packages:
       GitProvider:
       CommandProvider:
       FileSystemProvider:
+  github.com/koki-develop/gorocket/internal/services:
+    interfaces:
+      VersionService:
+      BuilderService:
+      ArchiverService:
+      ConfigService:
+      FormulaService:

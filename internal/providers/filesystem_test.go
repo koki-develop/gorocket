@@ -115,3 +115,65 @@ func TestFileSystemProvider_EnsureDistDir(t *testing.T) {
 		})
 	}
 }
+
+func TestFileSystemProvider_CalculateSHA256(t *testing.T) {
+	tests := []struct {
+		name        string
+		fileContent string
+		expectedSHA string
+		expectErr   bool
+	}{
+		{
+			name:        "calculate SHA256 for simple text",
+			fileContent: "hello world",
+			expectedSHA: "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+			expectErr:   false,
+		},
+		{
+			name:        "calculate SHA256 for empty file",
+			fileContent: "",
+			expectedSHA: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+			expectErr:   false,
+		},
+		{
+			name:        "calculate SHA256 for binary-like content",
+			fileContent: "\x00\x01\x02\x03\xFF",
+			expectedSHA: "ff5d8507b6a72bee2debce2c0054798deaccdc5d8a1b945b6280ce8aa9cba52e",
+			expectErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Create temporary file
+			tmpFile, err := os.CreateTemp("", "test_sha256_*.txt")
+			require.NoError(t, err)
+			defer func() { _ = os.Remove(tmpFile.Name()) }()
+
+			// Write test content
+			_, err = tmpFile.WriteString(tt.fileContent)
+			require.NoError(t, err)
+			err = tmpFile.Close()
+			require.NoError(t, err)
+
+			// Test SHA256 calculation
+			provider := NewFileSystemProvider()
+			result, err := provider.CalculateSHA256(tmpFile.Name())
+
+			if tt.expectErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedSHA, result)
+		})
+	}
+}
+
+func TestFileSystemProvider_CalculateSHA256_FileNotFound(t *testing.T) {
+	provider := NewFileSystemProvider()
+	_, err := provider.CalculateSHA256("nonexistent_file.txt")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "no such file or directory")
+}

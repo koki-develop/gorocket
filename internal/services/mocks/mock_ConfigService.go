@@ -171,8 +171,8 @@ func (_c *MockConfigService_GetDefaultConfigData_Call) RunAndReturn(run func() [
 }
 
 // LoadConfig provides a mock function for the type MockConfigService
-func (_mock *MockConfigService) LoadConfig() (*models.Config, error) {
-	ret := _mock.Called()
+func (_mock *MockConfigService) LoadConfig(templateData *models.TemplateData) (*models.Config, error) {
+	ret := _mock.Called(templateData)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LoadConfig")
@@ -180,18 +180,18 @@ func (_mock *MockConfigService) LoadConfig() (*models.Config, error) {
 
 	var r0 *models.Config
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func() (*models.Config, error)); ok {
-		return returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(*models.TemplateData) (*models.Config, error)); ok {
+		return returnFunc(templateData)
 	}
-	if returnFunc, ok := ret.Get(0).(func() *models.Config); ok {
-		r0 = returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(*models.TemplateData) *models.Config); ok {
+		r0 = returnFunc(templateData)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.Config)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func() error); ok {
-		r1 = returnFunc()
+	if returnFunc, ok := ret.Get(1).(func(*models.TemplateData) error); ok {
+		r1 = returnFunc(templateData)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -204,13 +204,20 @@ type MockConfigService_LoadConfig_Call struct {
 }
 
 // LoadConfig is a helper method to define mock.On call
-func (_e *MockConfigService_Expecter) LoadConfig() *MockConfigService_LoadConfig_Call {
-	return &MockConfigService_LoadConfig_Call{Call: _e.mock.On("LoadConfig")}
+//   - templateData *models.TemplateData
+func (_e *MockConfigService_Expecter) LoadConfig(templateData interface{}) *MockConfigService_LoadConfig_Call {
+	return &MockConfigService_LoadConfig_Call{Call: _e.mock.On("LoadConfig", templateData)}
 }
 
-func (_c *MockConfigService_LoadConfig_Call) Run(run func()) *MockConfigService_LoadConfig_Call {
+func (_c *MockConfigService_LoadConfig_Call) Run(run func(templateData *models.TemplateData)) *MockConfigService_LoadConfig_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		var arg0 *models.TemplateData
+		if args[0] != nil {
+			arg0 = args[0].(*models.TemplateData)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -220,7 +227,7 @@ func (_c *MockConfigService_LoadConfig_Call) Return(config *models.Config, err e
 	return _c
 }
 
-func (_c *MockConfigService_LoadConfig_Call) RunAndReturn(run func() (*models.Config, error)) *MockConfigService_LoadConfig_Call {
+func (_c *MockConfigService_LoadConfig_Call) RunAndReturn(run func(templateData *models.TemplateData) (*models.Config, error)) *MockConfigService_LoadConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

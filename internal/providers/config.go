@@ -1,8 +1,10 @@
 package providers
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
+	"text/template"
 
 	"github.com/goccy/go-yaml"
 	"github.com/koki-develop/gorocket/internal/models"
@@ -14,7 +16,7 @@ var defaultConfigYAML []byte
 type ConfigProvider interface {
 	ConfigExists() bool
 	CreateDefaultConfig() error
-	LoadConfig() (*models.Config, error)
+	LoadConfig(templateData *models.TemplateData) (*models.Config, error)
 	GetDefaultConfigData() []byte
 }
 
@@ -41,17 +43,35 @@ func (c *configProvider) CreateDefaultConfig() error {
 	return c.fsProvider.WriteFile(models.ConfigFileName, defaultConfigYAML, 0644)
 }
 
-func (c *configProvider) LoadConfig() (*models.Config, error) {
+func (c *configProvider) LoadConfig(templateData *models.TemplateData) (*models.Config, error) {
 	file, err := c.fsProvider.Open(models.ConfigFileName)
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = file.Close() }()
 
-	var config models.Config
-	decoder := yaml.NewDecoder(file)
-	if err := decoder.Decode(&config); err != nil {
+	// Read file content
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(file); err != nil {
 		return nil, err
+	}
+
+	// Process template
+	tmpl, err := template.New("config").Parse(buf.String())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse config template: %w", err)
+	}
+
+	var processedBuf bytes.Buffer
+	if err := tmpl.Execute(&processedBuf, templateData); err != nil {
+		return nil, fmt.Errorf("failed to execute config template: %w", err)
+	}
+
+	// Parse YAML
+	var config models.Config
+	decoder := yaml.NewDecoder(&processedBuf)
+	if err := decoder.Decode(&config); err != nil {
+		return nil, fmt.Errorf("failed to decode config YAML: %w", err)
 	}
 
 	return &config, nil
@@ -60,3 +80,4 @@ func (c *configProvider) LoadConfig() (*models.Config, error) {
 func (c *configProvider) GetDefaultConfigData() []byte {
 	return defaultConfigYAML
 }
+

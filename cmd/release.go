@@ -78,15 +78,9 @@ func (rc *ReleaseCommand) run() error {
 	// Set clean flag and run build
 	rc.buildCommand.flagClean = rc.flagClean
 	fmt.Println("Running build...")
-	archiveResults, err := rc.buildCommand.RunBuildWithResults()
+	buildResult, err := rc.buildCommand.RunBuildWithResults()
 	if err != nil {
 		return fmt.Errorf("failed to run build: %w", err)
-	}
-
-	// Get build info and GitHub repository info
-	buildInfo, err := rc.buildCommand.versionService.GetBuildInfo()
-	if err != nil {
-		return fmt.Errorf("failed to get build info: %w", err)
 	}
 
 	githubRepo, err := rc.gitProvider.GetGitHubRepository()
@@ -96,7 +90,7 @@ func (rc *ReleaseCommand) run() error {
 
 	// Check if release already exists
 	fmt.Println("Checking for existing release...")
-	existingRelease, err := rc.githubProvider.GetRelease(ctx, githubRepo, buildInfo.Version)
+	existingRelease, err := rc.githubProvider.GetRelease(ctx, githubRepo, buildResult.BuildInfo.Version)
 	if err != nil {
 		return fmt.Errorf("failed to get release: %w", err)
 	}
@@ -105,7 +99,7 @@ func (rc *ReleaseCommand) run() error {
 	var assets []models.ReleaseAsset
 
 	// Collect archive files from build results
-	for _, result := range archiveResults {
+	for _, result := range buildResult.ArchiveResults {
 		assets = append(assets, models.ReleaseAsset{
 			Name: filepath.Base(result.ArchivePath),
 			Path: result.ArchivePath,
@@ -114,7 +108,7 @@ func (rc *ReleaseCommand) run() error {
 
 	if existingRelease == nil {
 		fmt.Println("Creating GitHub Release...")
-		githubRelease, err := rc.githubProvider.CreateRelease(ctx, githubRepo, buildInfo.Version)
+		githubRelease, err := rc.githubProvider.CreateRelease(ctx, githubRepo, buildResult.BuildInfo.Version)
 		if err != nil {
 			return fmt.Errorf("failed to create GitHub release: %w", err)
 		}
@@ -126,29 +120,24 @@ func (rc *ReleaseCommand) run() error {
 		}
 	} else {
 		releaseURL = *existingRelease.HTMLURL
-		fmt.Printf("Release %s already exists\n", buildInfo.Version)
+		fmt.Printf("Release %s already exists\n", buildResult.BuildInfo.Version)
 	}
 
 	// Update Homebrew tap repository if configured
-	cfg, err := rc.buildCommand.configService.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
-
-	if cfg.Brew != nil {
+	if buildResult.Config.Brew != nil {
 		fmt.Println("Updating Homebrew tap repository...")
-		formulaPath := filepath.Join("dist", buildInfo.ModuleName+".rb")
+		formulaPath := filepath.Join("dist", buildResult.BuildInfo.ModuleName+".rb")
 		formulaContent, err := os.ReadFile(formulaPath)
 		if err != nil {
 			return fmt.Errorf("failed to read formula file: %w", err)
 		}
 
-		if err := rc.githubProvider.UpdateTapRepository(ctx, &cfg.Brew.Repository, string(formulaContent), buildInfo.ModuleName, buildInfo.Version); err != nil {
+		if err := rc.githubProvider.UpdateTapRepository(ctx, &buildResult.Config.Brew.Repository, string(formulaContent), buildResult.BuildInfo.ModuleName, buildResult.BuildInfo.Version); err != nil {
 			return fmt.Errorf("failed to update tap repository: %w", err)
 		}
 	}
 
-	fmt.Printf("Release %s created successfully!\n", buildInfo.Version)
+	fmt.Printf("Release %s created successfully!\n", buildResult.BuildInfo.Version)
 	fmt.Printf("Release URL: %s\n", releaseURL)
 
 	if len(assets) > 0 {

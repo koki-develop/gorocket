@@ -18,6 +18,7 @@ type BuildCommand struct {
 	formulaService  services.FormulaService
 	fsProvider      providers.FileSystemProvider
 	flagClean       bool
+	templateData    *models.TemplateData
 }
 
 func NewBuildCommand() *cobra.Command {
@@ -63,19 +64,26 @@ func (bc *BuildCommand) RunBuild() error {
 	return err
 }
 
-func (bc *BuildCommand) RunBuildWithResults() ([]models.ArchiveResult, error) {
+func (bc *BuildCommand) RunBuildWithResults() (*models.BuildCommandResult, error) {
 	if !bc.configService.ConfigExists() {
 		return nil, fmt.Errorf("%s not found. Run 'gorocket init' first", models.ConfigFileName)
-	}
-
-	cfg, err := bc.configService.LoadConfig()
-	if err != nil {
-		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	buildInfo, err := bc.versionService.GetBuildInfo()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get build info: %w", err)
+	}
+
+	// Create template data
+	bc.templateData = &models.TemplateData{
+		Version: buildInfo.Version,
+		Module:  buildInfo.ModuleName,
+	}
+
+	// Load config with template processing
+	cfg, err := bc.configService.LoadConfig(bc.templateData)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
 
 	if err := bc.fsProvider.EnsureDistDir(bc.flagClean); err != nil {
@@ -117,7 +125,13 @@ func (bc *BuildCommand) RunBuildWithResults() ([]models.ArchiveResult, error) {
 	}
 
 	fmt.Println("Build completed successfully!")
-	return archiveResults, nil
+
+	return &models.BuildCommandResult{
+		BuildInfo:      buildInfo,
+		Config:         cfg,
+		TemplateData:   bc.templateData,
+		ArchiveResults: archiveResults,
+	}, nil
 }
 
 var buildCmd = NewBuildCommand()

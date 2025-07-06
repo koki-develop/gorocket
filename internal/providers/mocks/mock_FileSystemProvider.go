@@ -101,16 +101,16 @@ func (_c *MockFileSystemProvider_Create_Call) RunAndReturn(run func(path string)
 }
 
 // EnsureDistDir provides a mock function for the type MockFileSystemProvider
-func (_mock *MockFileSystemProvider) EnsureDistDir() error {
-	ret := _mock.Called()
+func (_mock *MockFileSystemProvider) EnsureDistDir(clean bool) error {
+	ret := _mock.Called(clean)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EnsureDistDir")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func() error); ok {
-		r0 = returnFunc()
+	if returnFunc, ok := ret.Get(0).(func(bool) error); ok {
+		r0 = returnFunc(clean)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -123,13 +123,20 @@ type MockFileSystemProvider_EnsureDistDir_Call struct {
 }
 
 // EnsureDistDir is a helper method to define mock.On call
-func (_e *MockFileSystemProvider_Expecter) EnsureDistDir() *MockFileSystemProvider_EnsureDistDir_Call {
-	return &MockFileSystemProvider_EnsureDistDir_Call{Call: _e.mock.On("EnsureDistDir")}
+//   - clean bool
+func (_e *MockFileSystemProvider_Expecter) EnsureDistDir(clean interface{}) *MockFileSystemProvider_EnsureDistDir_Call {
+	return &MockFileSystemProvider_EnsureDistDir_Call{Call: _e.mock.On("EnsureDistDir", clean)}
 }
 
-func (_c *MockFileSystemProvider_EnsureDistDir_Call) Run(run func()) *MockFileSystemProvider_EnsureDistDir_Call {
+func (_c *MockFileSystemProvider_EnsureDistDir_Call) Run(run func(clean bool)) *MockFileSystemProvider_EnsureDistDir_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		var arg0 bool
+		if args[0] != nil {
+			arg0 = args[0].(bool)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -139,7 +146,7 @@ func (_c *MockFileSystemProvider_EnsureDistDir_Call) Return(err error) *MockFile
 	return _c
 }
 
-func (_c *MockFileSystemProvider_EnsureDistDir_Call) RunAndReturn(run func() error) *MockFileSystemProvider_EnsureDistDir_Call {
+func (_c *MockFileSystemProvider_EnsureDistDir_Call) RunAndReturn(run func(clean bool) error) *MockFileSystemProvider_EnsureDistDir_Call {
 	_c.Call.Return(run)
 	return _c
 }

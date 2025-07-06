@@ -19,7 +19,7 @@ type FileSystemProvider interface {
 	Remove(path string) error
 	RemoveAll(path string) error
 	GetModuleName() (string, error)
-	EnsureDistDir() error
+	EnsureDistDir(clean bool) error
 }
 
 type fileSystemProvider struct{}
@@ -83,16 +83,22 @@ func (f *fileSystemProvider) GetModuleName() (string, error) {
 	return "", fmt.Errorf("module name not found in go.mod")
 }
 
-func (f *fileSystemProvider) EnsureDistDir() error {
+func (f *fileSystemProvider) EnsureDistDir(clean bool) error {
 	distDir := "dist"
 	if stat, err := f.Stat(distDir); err == nil {
 		if stat.IsDir() {
-			entries, err := os.ReadDir(distDir)
-			if err != nil {
-				return fmt.Errorf("failed to read dist directory: %w", err)
-			}
-			if len(entries) > 0 {
-				return fmt.Errorf("dist directory is not empty. Please clean it first")
+			if clean {
+				if err := f.RemoveAll(distDir); err != nil {
+					return fmt.Errorf("failed to remove dist directory: %w", err)
+				}
+			} else {
+				entries, err := os.ReadDir(distDir)
+				if err != nil {
+					return fmt.Errorf("failed to read dist directory: %w", err)
+				}
+				if len(entries) > 0 {
+					return fmt.Errorf("dist directory is not empty. Please clean it first")
+				}
 			}
 		}
 	} else if !os.IsNotExist(err) {

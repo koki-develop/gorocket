@@ -16,6 +16,7 @@ type BuildCommand struct {
 	archiverService services.ArchiverService
 	configService   services.ConfigService
 	fsProvider      providers.FileSystemProvider
+	flagClean       bool
 }
 
 func NewBuildCommand() *cobra.Command {
@@ -36,12 +37,16 @@ func NewBuildCommand() *cobra.Command {
 		fsProvider:      fsProvider,
 	}
 
-	return &cobra.Command{
+	cobraCmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build binaries for multiple platforms",
 		Long:  "Build binaries for multiple platforms based on the configuration in .gorocket.yaml",
 		RunE:  buildCmd.run,
 	}
+
+	cobraCmd.Flags().BoolVar(&buildCmd.flagClean, "clean", false, "Clean dist directory before building")
+
+	return cobraCmd
 }
 
 func (bc *BuildCommand) run(cmd *cobra.Command, args []string) error {
@@ -59,7 +64,7 @@ func (bc *BuildCommand) run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get build info: %w", err)
 	}
 
-	if err := bc.fsProvider.EnsureDistDir(); err != nil {
+	if err := bc.fsProvider.EnsureDistDir(bc.flagClean); err != nil {
 		return fmt.Errorf("failed to prepare dist directory: %w", err)
 	}
 

@@ -10,14 +10,14 @@ import (
 
 func TestVersionService_GetBuildInfo(t *testing.T) {
 	tests := []struct {
-		name           string
-		moduleName     string
-		moduleNameErr  error
-		version        string
-		versionErr     error
-		expectedModule string
+		name            string
+		moduleName      string
+		moduleNameErr   error
+		version         string
+		versionErr      error
+		expectedModule  string
 		expectedVersion string
-		expectedError  bool
+		expectedError   bool
 	}{
 		{
 			name:            "successful build info retrieval",
@@ -51,7 +51,7 @@ func TestVersionService_GetBuildInfo(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGit := mocks.NewMockGitProvider(t)
 			mockFS := mocks.NewMockFileSystemProvider(t)
-			
+
 			mockFS.EXPECT().GetModuleName().Return(tt.moduleName, tt.moduleNameErr)
 			if tt.moduleNameErr == nil {
 				mockGit.EXPECT().GetCurrentVersion().Return(tt.version, tt.versionErr)

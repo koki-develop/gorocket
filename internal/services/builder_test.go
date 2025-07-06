@@ -12,10 +12,10 @@ import (
 
 func TestBuilderService_BuildTargets(t *testing.T) {
 	tests := []struct {
-		name           string
-		buildInfo      *models.BuildInfo
-		targets        []models.Target
-		buildBinaryErr error
+		name            string
+		buildInfo       *models.BuildInfo
+		targets         []models.Target
+		buildBinaryErr  error
 		expectedResults int
 		expectedError   bool
 	}{

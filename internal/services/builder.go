@@ -32,7 +32,7 @@ func (b *builderService) BuildTargets(buildInfo *models.BuildInfo, targets []mod
 			}
 
 			binaryPath, err := b.commandProvider.BuildBinary(buildInfo.ModuleName, buildInfo.Version, target.OS, arch)
-			
+
 			results = append(results, models.BuildResult{
 				Target:     buildTarget,
 				BinaryPath: binaryPath,

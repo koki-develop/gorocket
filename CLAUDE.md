@@ -86,7 +86,7 @@ internal/
 ### Key Components
 
 **Models (`internal/models/`)**
-- `Config`: Configuration structure matching `.gorocket.yaml`
+- `Config`: Configuration structure matching `.gorocket.yml`
 - `BuildTarget`, `BuildResult`, `ArchiveResult`: Build process data structures
 - `BuildInfo`: Module name and version information
 
@@ -131,7 +131,7 @@ func NewExampleCommand() *cobra.Command {
 
 ## Configuration
 
-The tool uses `.gorocket.yaml` for configuration:
+The tool uses `.gorocket.yml` for configuration:
 - `build.targets`: Array of OS/architecture combinations to build
 - `brew.repository`: Optional Homebrew tap repository configuration (owner/name)
 - Default config is embedded in `providers/config_default.yaml`
@@ -155,7 +155,7 @@ mockery       # Direct command
 
 # Generated mocks use modern EXPECT() API:
 mockFS := mocks.NewMockFileSystemProvider(t)
-mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(data)), nil)
+mockFS.EXPECT().Open(".gorocket.yml").Return(io.NopCloser(strings.NewReader(data)), nil)
 ```
 
 ## Build Process Requirements
@@ -168,7 +168,7 @@ mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(dat
 
 ## Available Commands
 
-- `init`: Create a default .gorocket.yaml configuration file
+- `init`: Create a default .gorocket.yml configuration file
 - `build`: Build binaries for multiple platforms (requires git tag)
   - `--clean`: Remove dist directory before building
 - `version`: Display version information
@@ -192,7 +192,7 @@ The project uses go-task for common development workflows. All tasks are defined
 
 The tool can generate Homebrew Formula files for tap repositories:
 
-- **Configuration**: Add `brew.repository` section to `.gorocket.yaml` with owner/name
+- **Configuration**: Add `brew.repository` section to `.gorocket.yml` with owner/name
 - **Formula Generation**: Automatically creates `.rb` file during build when brew config exists
 - **Quality Assurance**: Use `task formula-lint` to validate generated Formula files
 - **Ruby Compliance**: Generated formulas include Sorbet typing and follow Ruby style guidelines

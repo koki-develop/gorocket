@@ -43,7 +43,7 @@ func NewBuildCommand() *cobra.Command {
 	cobraCmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build binaries for multiple platforms",
-		Long:  "Build binaries for multiple platforms based on the configuration in .gorocket.yaml",
+		Long:  "Build binaries for multiple platforms based on the configuration in .gorocket.yml",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return buildCmd.run()
 		},

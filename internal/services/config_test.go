@@ -33,7 +33,7 @@ func TestConfigService_ConfigExists(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
-			mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, tt.statErr)
+			mockFS.EXPECT().Stat(".gorocket.yml").Return(nil, tt.statErr)
 
 			service := NewConfigService(mockFS)
 			result := service.ConfigExists()
@@ -74,10 +74,10 @@ func TestConfigService_CreateDefaultConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
 			if tt.configExists {
-				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, nil)
+				mockFS.EXPECT().Stat(".gorocket.yml").Return(nil, nil)
 			} else {
-				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, os.ErrNotExist)
-				mockFS.EXPECT().WriteFile(".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
+				mockFS.EXPECT().Stat(".gorocket.yml").Return(nil, os.ErrNotExist)
+				mockFS.EXPECT().WriteFile(".gorocket.yml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
 			}
 
 			service := NewConfigService(mockFS)
@@ -122,9 +122,9 @@ func TestConfigService_LoadConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
 			if tt.readFileErr != nil {
-				mockFS.EXPECT().Open(".gorocket.yaml").Return(nil, tt.readFileErr)
+				mockFS.EXPECT().Open(".gorocket.yml").Return(nil, tt.readFileErr)
 			} else {
-				mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(string(tt.fileContent))), nil)
+				mockFS.EXPECT().Open(".gorocket.yml").Return(io.NopCloser(strings.NewReader(string(tt.fileContent))), nil)
 			}
 
 			service := NewConfigService(mockFS)

@@ -24,4 +24,4 @@ type Repository struct {
 	Name  string `yaml:"name"`
 }
 
-const ConfigFileName = ".gorocket.yaml"
+const ConfigFileName = ".gorocket.yml"

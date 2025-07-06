@@ -53,7 +53,13 @@ func (s *formulaService) buildFormulaInfo(buildInfo models.BuildInfo, archiveRes
 			continue
 		}
 
-		sha256, err := s.fsProvider.CalculateSHA256(result.ArchivePath)
+		file, err := s.fsProvider.Open(result.ArchivePath)
+		if err != nil {
+			return models.FormulaInfo{}, fmt.Errorf("failed to open archive %s: %w", result.ArchivePath, err)
+		}
+		defer func() { _ = file.Close() }()
+
+		sha256, err := s.fsProvider.CalculateSHA256(file)
 		if err != nil {
 			return models.FormulaInfo{}, fmt.Errorf("failed to calculate SHA256 for %s: %w", result.ArchivePath, err)
 		}

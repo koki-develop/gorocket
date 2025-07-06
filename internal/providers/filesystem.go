@@ -21,7 +21,7 @@ type FileSystemProvider interface {
 	RemoveAll(path string) error
 	GetModuleName() (string, error)
 	EnsureDistDir(clean bool) error
-	CalculateSHA256(path string) (string, error)
+	CalculateSHA256(r io.Reader) (string, error)
 }
 
 type fileSystemProvider struct{}
@@ -114,15 +114,9 @@ func (f *fileSystemProvider) EnsureDistDir(clean bool) error {
 	return nil
 }
 
-func (f *fileSystemProvider) CalculateSHA256(path string) (string, error) {
-	file, err := f.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = file.Close() }()
-
+func (f *fileSystemProvider) CalculateSHA256(r io.Reader) (string, error) {
 	hasher := sha256.New()
-	if _, err := io.Copy(hasher, file); err != nil {
+	if _, err := io.Copy(hasher, r); err != nil {
 		return "", err
 	}
 

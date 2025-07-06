@@ -3,6 +3,7 @@ package providers
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -145,20 +146,12 @@ func TestFileSystemProvider_CalculateSHA256(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Create temporary file
-			tmpFile, err := os.CreateTemp("", "test_sha256_*.txt")
-			require.NoError(t, err)
-			defer func() { _ = os.Remove(tmpFile.Name()) }()
-
-			// Write test content
-			_, err = tmpFile.WriteString(tt.fileContent)
-			require.NoError(t, err)
-			err = tmpFile.Close()
-			require.NoError(t, err)
+			// Use strings.Reader instead of temporary file
+			reader := strings.NewReader(tt.fileContent)
 
 			// Test SHA256 calculation
 			provider := NewFileSystemProvider()
-			result, err := provider.CalculateSHA256(tmpFile.Name())
+			result, err := provider.CalculateSHA256(reader)
 
 			if tt.expectErr {
 				assert.Error(t, err)
@@ -169,11 +162,4 @@ func TestFileSystemProvider_CalculateSHA256(t *testing.T) {
 			assert.Equal(t, tt.expectedSHA, result)
 		})
 	}
-}
-
-func TestFileSystemProvider_CalculateSHA256_FileNotFound(t *testing.T) {
-	provider := NewFileSystemProvider()
-	_, err := provider.CalculateSHA256("nonexistent_file.txt")
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "no such file or directory")
 }

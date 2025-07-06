@@ -39,8 +39,8 @@ func (_m *MockFileSystemProvider) EXPECT() *MockFileSystemProvider_Expecter {
 }
 
 // CalculateSHA256 provides a mock function for the type MockFileSystemProvider
-func (_mock *MockFileSystemProvider) CalculateSHA256(path string) (string, error) {
-	ret := _mock.Called(path)
+func (_mock *MockFileSystemProvider) CalculateSHA256(r io.Reader) (string, error) {
+	ret := _mock.Called(r)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CalculateSHA256")
@@ -48,16 +48,16 @@ func (_mock *MockFileSystemProvider) CalculateSHA256(path string) (string, error
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string) (string, error)); ok {
-		return returnFunc(path)
+	if returnFunc, ok := ret.Get(0).(func(io.Reader) (string, error)); ok {
+		return returnFunc(r)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string) string); ok {
-		r0 = returnFunc(path)
+	if returnFunc, ok := ret.Get(0).(func(io.Reader) string); ok {
+		r0 = returnFunc(r)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string) error); ok {
-		r1 = returnFunc(path)
+	if returnFunc, ok := ret.Get(1).(func(io.Reader) error); ok {
+		r1 = returnFunc(r)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -70,16 +70,16 @@ type MockFileSystemProvider_CalculateSHA256_Call struct {
 }
 
 // CalculateSHA256 is a helper method to define mock.On call
-//   - path string
-func (_e *MockFileSystemProvider_Expecter) CalculateSHA256(path interface{}) *MockFileSystemProvider_CalculateSHA256_Call {
-	return &MockFileSystemProvider_CalculateSHA256_Call{Call: _e.mock.On("CalculateSHA256", path)}
+//   - r io.Reader
+func (_e *MockFileSystemProvider_Expecter) CalculateSHA256(r interface{}) *MockFileSystemProvider_CalculateSHA256_Call {
+	return &MockFileSystemProvider_CalculateSHA256_Call{Call: _e.mock.On("CalculateSHA256", r)}
 }
 
-func (_c *MockFileSystemProvider_CalculateSHA256_Call) Run(run func(path string)) *MockFileSystemProvider_CalculateSHA256_Call {
+func (_c *MockFileSystemProvider_CalculateSHA256_Call) Run(run func(r io.Reader)) *MockFileSystemProvider_CalculateSHA256_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
+		var arg0 io.Reader
 		if args[0] != nil {
-			arg0 = args[0].(string)
+			arg0 = args[0].(io.Reader)
 		}
 		run(
 			arg0,
@@ -93,7 +93,7 @@ func (_c *MockFileSystemProvider_CalculateSHA256_Call) Return(s string, err erro
 	return _c
 }
 
-func (_c *MockFileSystemProvider_CalculateSHA256_Call) RunAndReturn(run func(path string) (string, error)) *MockFileSystemProvider_CalculateSHA256_Call {
+func (_c *MockFileSystemProvider_CalculateSHA256_Call) RunAndReturn(run func(r io.Reader) (string, error)) *MockFileSystemProvider_CalculateSHA256_Call {
 	_c.Call.Return(run)
 	return _c
 }

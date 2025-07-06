@@ -38,17 +38,26 @@ func (c *configProvider) CreateDefaultConfig() error {
 		return fmt.Errorf("%s already exists", models.ConfigFileName)
 	}
 
-	return c.fsProvider.WriteFile(models.ConfigFileName, defaultConfigYAML, 0644)
+	file, err := c.fsProvider.Create(models.ConfigFileName)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = file.Close() }()
+
+	_, err = file.Write(defaultConfigYAML)
+	return err
 }
 
 func (c *configProvider) LoadConfig() (*models.Config, error) {
-	data, err := c.fsProvider.ReadFile(models.ConfigFileName)
+	file, err := c.fsProvider.Open(models.ConfigFileName)
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = file.Close() }()
 
 	var config models.Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	decoder := yaml.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
 		return nil, err
 	}
 

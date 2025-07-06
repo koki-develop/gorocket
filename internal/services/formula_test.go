@@ -2,7 +2,9 @@ package services
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/koki-develop/gorocket/internal/models"
@@ -55,10 +57,14 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return("darwin_amd64_sha256", nil)
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_arm64.tar.gz").Return("darwin_arm64_sha256", nil)
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_linux_amd64.tar.gz").Return("linux_amd64_sha256", nil)
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_linux_arm64.tar.gz").Return("linux_arm64_sha256", nil)
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil).Once()
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil).Once()
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil).Once()
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_arm64_sha256", nil).Once()
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_linux_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content3")), nil).Once()
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("linux_amd64_sha256", nil).Once()
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_linux_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content4")), nil).Once()
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("linux_arm64_sha256", nil).Once()
 				mockFS.EXPECT().WriteFile(
 					filepath.Join("dist", "gorocket.rb"),
 					mock.MatchedBy(func(content []byte) bool {
@@ -106,7 +112,8 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return("darwin_amd64_sha256", nil)
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content")), nil)
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil)
 				mockFS.EXPECT().WriteFile(
 					filepath.Join("dist", "gorocket.rb"),
 					mock.MatchedBy(func(content []byte) bool {
@@ -140,7 +147,7 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return("", fmt.Errorf("file not found"))
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(nil, fmt.Errorf("file not found"))
 			},
 			wantErr: true,
 		},
@@ -164,7 +171,8 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
-				mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return("darwin_amd64_sha256", nil)
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content")), nil)
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil)
 				mockFS.EXPECT().WriteFile(
 					mock.AnythingOfType("string"),
 					mock.AnythingOfType("[]uint8"),
@@ -221,8 +229,10 @@ func TestFormulaService_buildFormulaInfo(t *testing.T) {
 		},
 	}
 
-	mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return("darwin_amd64_sha256", nil)
-	mockFS.EXPECT().CalculateSHA256("dist/gorocket_v1.0.0_linux_arm64.tar.gz").Return("linux_arm64_sha256", nil)
+	mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil).Once()
+	mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil).Once()
+	mockFS.EXPECT().Open("dist/gorocket_v1.0.0_linux_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil).Once()
+	mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("linux_arm64_sha256", nil).Once()
 
 	formulaInfo, err := service.buildFormulaInfo(buildInfo, archiveResults, brewConfig)
 

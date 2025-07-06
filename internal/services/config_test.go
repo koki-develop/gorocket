@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
@@ -75,7 +77,14 @@ func TestConfigService_CreateDefaultConfig(t *testing.T) {
 				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, nil)
 			} else {
 				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, os.ErrNotExist)
-				mockFS.EXPECT().WriteFile(".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
+				if tt.writeFileErr != nil {
+					mockFS.EXPECT().Create(".gorocket.yaml").Return(nil, tt.writeFileErr)
+				} else {
+					mockWriter := mocks.NewMockWriteCloser(t)
+					mockWriter.EXPECT().Write(mock.AnythingOfType("[]uint8")).Return(19, nil)
+					mockWriter.EXPECT().Close().Return(nil)
+					mockFS.EXPECT().Create(".gorocket.yaml").Return(mockWriter, nil)
+				}
 			}
 
 			service := NewConfigService(mockFS)
@@ -119,7 +128,11 @@ func TestConfigService_LoadConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
-			mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(tt.fileContent, tt.readFileErr)
+			if tt.readFileErr != nil {
+				mockFS.EXPECT().Open(".gorocket.yaml").Return(nil, tt.readFileErr)
+			} else {
+				mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(string(tt.fileContent))), nil)
+			}
 
 			service := NewConfigService(mockFS)
 			config, err := service.LoadConfig()

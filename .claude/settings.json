@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(task:*)",
+
+      "Bash(go run main.go init:*)",
+      "Bash(go run main.go build:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(go tool cover:*)"
+    ],
+    "deny": []
+  }
+}

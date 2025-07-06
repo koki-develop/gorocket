@@ -84,7 +84,7 @@ func (bc *BuildCommand) RunBuildWithResults() ([]models.ArchiveResult, error) {
 
 	fmt.Printf("Building %s version %s\n", buildInfo.ModuleName, buildInfo.Version)
 
-	buildResults, err := bc.builderService.BuildTargets(buildInfo, cfg.Build.Targets)
+	buildResults, err := bc.builderService.BuildTargets(buildInfo, cfg.Build)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build targets: %w", err)
 	}

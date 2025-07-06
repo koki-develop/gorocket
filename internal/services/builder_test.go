@@ -14,7 +14,7 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 	tests := []struct {
 		name            string
 		buildInfo       *models.BuildInfo
-		targets         []models.Target
+		buildConfig     models.BuildConfig
 		buildBinaryErr  error
 		expectedResults int
 		expectedError   bool
@@ -25,9 +25,12 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 				ModuleName: "test-module",
 				Version:    "v1.0.0",
 			},
-			targets: []models.Target{
-				{OS: "linux", Arch: []string{"amd64", "arm64"}},
-				{OS: "windows", Arch: []string{"amd64"}},
+			buildConfig: models.BuildConfig{
+				LdFlags: "-s -w",
+				Targets: []models.Target{
+					{OS: "linux", Arch: []string{"amd64", "arm64"}},
+					{OS: "windows", Arch: []string{"amd64"}},
+				},
 			},
 			buildBinaryErr:  nil,
 			expectedResults: 3,
@@ -39,8 +42,11 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 				ModuleName: "test-module",
 				Version:    "v1.0.0",
 			},
-			targets: []models.Target{
-				{OS: "linux", Arch: []string{"amd64"}},
+			buildConfig: models.BuildConfig{
+				LdFlags: "",
+				Targets: []models.Target{
+					{OS: "linux", Arch: []string{"amd64"}},
+				},
 			},
 			buildBinaryErr:  errors.New("build error"),
 			expectedResults: 0,
@@ -52,15 +58,15 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockCommand := mocks.NewMockCommandProvider(t)
 			if tt.buildBinaryErr != nil {
-				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", tt.buildBinaryErr).Times(tt.expectedResults)
+				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", tt.buildBinaryErr).Times(tt.expectedResults)
 			} else {
-				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("dist/binary", nil).Times(tt.expectedResults)
+				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("dist/binary", nil).Times(tt.expectedResults)
 			}
 
 			mockFS := mocks.NewMockFileSystemProvider(t)
 
 			service := NewBuilderService(mockCommand, mockFS)
-			results, err := service.BuildTargets(tt.buildInfo, tt.targets)
+			results, err := service.BuildTargets(tt.buildInfo, tt.buildConfig)
 
 			if tt.expectedError {
 				assert.Error(t, err)

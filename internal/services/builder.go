@@ -7,7 +7,7 @@ import (
 )
 
 type BuilderService interface {
-	BuildTargets(buildInfo *models.BuildInfo, targets []models.Target) ([]models.BuildResult, error)
+	BuildTargets(buildInfo *models.BuildInfo, buildConfig models.BuildConfig) ([]models.BuildResult, error)
 }
 
 type builderService struct {
@@ -22,18 +22,18 @@ func NewBuilderService(commandProvider providers.CommandProvider, fileSystemProv
 	}
 }
 
-func (b *builderService) BuildTargets(buildInfo *models.BuildInfo, targets []models.Target) ([]models.BuildResult, error) {
+func (b *builderService) BuildTargets(buildInfo *models.BuildInfo, buildConfig models.BuildConfig) ([]models.BuildResult, error) {
 	var results []models.BuildResult
 	var errGroup *multierror.Error
 
-	for _, target := range targets {
+	for _, target := range buildConfig.Targets {
 		for _, arch := range target.Arch {
 			buildTarget := models.BuildTarget{
 				OS:   target.OS,
 				Arch: arch,
 			}
 
-			binaryPath, err := b.commandProvider.BuildBinary(buildInfo.ModuleName, buildInfo.Version, target.OS, arch)
+			binaryPath, err := b.commandProvider.BuildBinary(buildInfo.ModuleName, buildInfo.Version, target.OS, arch, buildConfig.LdFlags)
 			if err != nil {
 				errGroup = multierror.Append(errGroup, err)
 				continue

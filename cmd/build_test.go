@@ -84,7 +84,7 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 			mockConfigService.EXPECT().LoadConfig().Return(config, nil)
 			mockVersionService.EXPECT().GetBuildInfo().Return(buildInfo, nil)
 			mockFS.EXPECT().EnsureDistDir(false).Return(nil)
-			mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build.Targets).Return(buildResults, nil)
+			mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build).Return(buildResults, nil)
 			mockArchiverService.EXPECT().CreateArchives(buildInfo, buildResults).Return(archiveResults, nil)
 			mockFS.EXPECT().Remove("dist/gorocket_darwin_amd64").Return(nil)
 
@@ -164,7 +164,7 @@ func TestBuildCommand_FullWorkflow(t *testing.T) {
 	mockConfigService.EXPECT().LoadConfig().Return(config, nil)
 	mockVersionService.EXPECT().GetBuildInfo().Return(buildInfo, nil)
 	mockFS.EXPECT().EnsureDistDir(true).Return(nil)
-	mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build.Targets).Return(buildResults, nil)
+	mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build).Return(buildResults, nil)
 	mockArchiverService.EXPECT().CreateArchives(buildInfo, buildResults).Return(archiveResults, nil)
 
 	// Expect removal of binary files

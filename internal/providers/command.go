@@ -10,7 +10,7 @@ import (
 type CommandProvider interface {
 	Run(name string, args ...string) (string, error)
 	RunWithEnv(name string, env []string, args ...string) error
-	BuildBinary(moduleName, version, osName, arch string) (string, error)
+	BuildBinary(moduleName, version, osName, arch, ldflags string) (string, error)
 }
 
 type commandProvider struct{}
@@ -34,7 +34,7 @@ func (c *commandProvider) RunWithEnv(name string, env []string, args ...string) 
 	return cmd.Run()
 }
 
-func (c *commandProvider) BuildBinary(moduleName, version, osName, arch string) (string, error) {
+func (c *commandProvider) BuildBinary(moduleName, version, osName, arch, ldflags string) (string, error) {
 	var extension string
 	if osName == "windows" {
 		extension = ".exe"
@@ -48,7 +48,13 @@ func (c *commandProvider) BuildBinary(moduleName, version, osName, arch string) 
 		fmt.Sprintf("GOARCH=%s", arch),
 	}
 
-	err := c.RunWithEnv("go", env, "build", "-o", binaryPath, ".")
+	args := []string{"build", "-o", binaryPath}
+	if ldflags != "" {
+		args = append(args, "-ldflags", ldflags)
+	}
+	args = append(args, ".")
+
+	err := c.RunWithEnv("go", env, args...)
 	if err != nil {
 		return "", fmt.Errorf("failed to build for %s/%s: %w", osName, arch, err)
 	}

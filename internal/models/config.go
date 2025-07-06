@@ -6,6 +6,7 @@ type Config struct {
 }
 
 type BuildConfig struct {
+	LdFlags string   `yaml:"ldflags,omitempty"`
 	Targets []Target `yaml:"targets"`
 }
 

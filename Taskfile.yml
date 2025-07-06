@@ -37,3 +37,8 @@ tasks:
     desc: Run golangci-lint
     cmds:
       - golangci-lint run
+
+  formula-lint:
+    desc: Validate generated Homebrew formula
+    cmds:
+      - brew style ./dist/*.rb

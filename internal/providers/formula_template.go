@@ -6,7 +6,11 @@ import (
 	"text/template"
 )
 
-const formulaTemplate = `class {{.ClassName}} < Formula
+const formulaTemplate = `# typed: strict
+# frozen_string_literal: true
+
+# {{.ClassName}} formula
+class {{.ClassName}} < Formula
   version "{{.Version}}"
 
   on_macos do

@@ -30,8 +30,8 @@ func TestConfigService_ConfigExists(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{}
-			mockFS.On("Stat", ".gorocket.yaml").Return(nil, tt.statErr)
+			mockFS := mocks.NewMockFileSystemProvider(t)
+			mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, tt.statErr)
 
 			service := NewConfigService(mockFS)
 			result := service.ConfigExists()
@@ -70,13 +70,13 @@ func TestConfigService_CreateDefaultConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{}
+			mockFS := mocks.NewMockFileSystemProvider(t)
 			if tt.configExists {
-				mockFS.On("Stat", ".gorocket.yaml").Return(nil, nil)
+				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, nil)
 			} else {
-				mockFS.On("Stat", ".gorocket.yaml").Return(nil, os.ErrNotExist)
+				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, os.ErrNotExist)
+				mockFS.EXPECT().WriteFile(".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
 			}
-			mockFS.On("WriteFile", ".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
 
 			service := NewConfigService(mockFS)
 			err := service.CreateDefaultConfig()
@@ -118,8 +118,8 @@ func TestConfigService_LoadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{}
-			mockFS.On("ReadFile", ".gorocket.yaml").Return(tt.fileContent, tt.readFileErr)
+			mockFS := mocks.NewMockFileSystemProvider(t)
+			mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(tt.fileContent, tt.readFileErr)
 
 			service := NewConfigService(mockFS)
 			config, err := service.LoadConfig()
@@ -135,7 +135,7 @@ func TestConfigService_LoadConfig(t *testing.T) {
 }
 
 func TestConfigService_GetDefaultConfigData(t *testing.T) {
-	mockFS := &mocks.MockFileSystemProvider{}
+	mockFS := mocks.NewMockFileSystemProvider(t)
 	service := NewConfigService(mockFS)
 	data := service.GetDefaultConfigData()
 

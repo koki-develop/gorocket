@@ -50,14 +50,14 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockCommand := &mocks.MockCommandProvider{}
+			mockCommand := mocks.NewMockCommandProvider(t)
 			if tt.buildBinaryErr != nil {
-				mockCommand.On("BuildBinary", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", tt.buildBinaryErr)
+				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", tt.buildBinaryErr).Times(tt.expectedResults)
 			} else {
-				mockCommand.On("BuildBinary", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("dist/binary", nil)
+				mockCommand.EXPECT().BuildBinary(mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("dist/binary", nil).Times(tt.expectedResults)
 			}
 
-			mockFS := &mocks.MockFileSystemProvider{}
+			mockFS := mocks.NewMockFileSystemProvider(t)
 
 			service := NewBuilderService(mockCommand, mockFS)
 			results, err := service.BuildTargets(tt.buildInfo, tt.targets)

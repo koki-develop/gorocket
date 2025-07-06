@@ -109,7 +109,7 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 			}
 
 			// Execute
-			err := buildCmd.run(nil, nil)
+			err := buildCmd.run()
 
 			// Assert
 			if tt.expectErr {
@@ -191,7 +191,7 @@ func TestBuildCommand_FullWorkflow(t *testing.T) {
 	}
 
 	// Execute
-	err := buildCmd.run(nil, nil)
+	err := buildCmd.run()
 
 	// Assert
 	assert.NoError(t, err)

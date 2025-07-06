@@ -2,6 +2,7 @@ package providers
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -35,6 +36,17 @@ func (g *gitProvider) GetCurrentVersion() (string, error) {
 }
 
 func (g *gitProvider) GetGitHubRepository() (*models.GitHubRepository, error) {
+	// Check GITHUB_REPOSITORY environment variable first
+	if repo := os.Getenv("GITHUB_REPOSITORY"); repo != "" {
+		parts := strings.SplitN(repo, "/", 2)
+		if len(parts) == 2 {
+			return &models.GitHubRepository{
+				Owner: parts[0],
+				Name:  parts[1],
+			}, nil
+		}
+	}
+
 	cmd := exec.Command("git", "remote", "get-url", "origin")
 	output, err := cmd.Output()
 	if err != nil {

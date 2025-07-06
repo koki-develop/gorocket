@@ -1,0 +1,57 @@
+package providers
+
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+)
+
+type CommandProvider interface {
+	Run(name string, args ...string) (string, error)
+	RunWithEnv(name string, env []string, args ...string) error
+	BuildBinary(moduleName, version, osName, arch string) (string, error)
+}
+
+type commandProvider struct{}
+
+func NewCommandProvider() CommandProvider {
+	return &commandProvider{}
+}
+
+func (c *commandProvider) Run(name string, args ...string) (string, error) {
+	cmd := exec.Command(name, args...)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to run command %s: %w", name, err)
+	}
+	return string(output), nil
+}
+
+func (c *commandProvider) RunWithEnv(name string, env []string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Env = append(os.Environ(), env...)
+	return cmd.Run()
+}
+
+func (c *commandProvider) BuildBinary(moduleName, version, osName, arch string) (string, error) {
+	var extension string
+	if osName == "windows" {
+		extension = ".exe"
+	}
+
+	binaryName := fmt.Sprintf("%s_%s_%s_%s%s", moduleName, version, osName, arch, extension)
+	binaryPath := filepath.Join("dist", binaryName)
+
+	env := []string{
+		fmt.Sprintf("GOOS=%s", osName),
+		fmt.Sprintf("GOARCH=%s", arch),
+	}
+
+	err := c.RunWithEnv("go", env, "build", "-o", binaryPath, ".")
+	if err != nil {
+		return "", fmt.Errorf("failed to build for %s/%s: %w", osName, arch, err)
+	}
+
+	return binaryPath, nil
+}

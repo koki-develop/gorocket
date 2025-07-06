@@ -80,4 +80,3 @@ func (c *configProvider) LoadConfig(templateData *models.TemplateData) (*models.
 func (c *configProvider) GetDefaultConfigData() []byte {
 	return defaultConfigYAML
 }
-

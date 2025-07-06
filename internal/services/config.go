@@ -37,4 +37,3 @@ func (c *configService) LoadConfig(templateData *models.TemplateData) (*models.C
 func (c *configService) GetDefaultConfigData() []byte {
 	return c.configProvider.GetDefaultConfigData()
 }
-

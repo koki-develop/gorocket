@@ -91,7 +91,7 @@ internal/
 - `BuildInfo`: Module name and version information
 
 **Providers (`internal/providers/`)**
-- `FileSystemProvider`: File operations abstraction
+- `FileSystemProvider`: File operations abstraction using io.Reader/io.Writer interfaces
 - `GitProvider`: Git operations (version retrieval)
 - `CommandProvider`: External command execution (go build)
 - `ConfigProvider`: Configuration file management
@@ -142,9 +142,10 @@ The tool uses `.gorocket.yaml` for configuration:
 - **Unit tests** use auto-generated mocks from `internal/providers/mocks/` and `internal/services/mocks/`
 - **Mock generation** via `mockery` command using `.mockery.yml` configuration
 - **testify/assert** for assertions and **testify/mock** for mocking
-- **No file system side effects** in tests - all I/O is mocked
+- **No file system side effects** in tests - all I/O is mocked using io.Reader/io.Writer
 - **Test coverage** focuses on business logic rather than 100% coverage
 - **Integration testing** through CLI commands with temporary git tags
+- **Avoid trivial tests** - no tests for simple struct field assignments or flag value passing
 
 ### Mock Management
 ```bash
@@ -154,7 +155,7 @@ mockery       # Direct command
 
 # Generated mocks use modern EXPECT() API:
 mockFS := mocks.NewMockFileSystemProvider(t)
-mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
+mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(data)), nil)
 ```
 
 ## Build Process Requirements

@@ -111,10 +111,22 @@ The tool uses `.gorocket.yaml` for configuration:
 
 ## Testing Strategy
 
-- **Unit tests** use mocks from `providers/mocks/` and `services/mocks/`
+- **Unit tests** use auto-generated mocks from `internal/providers/mocks/`
+- **Mock generation** via `mockery` command using `.mockery.yml` configuration
+- **testify/assert** for assertions and **testify/mock** for mocking
 - **No file system side effects** in tests - all I/O is mocked
 - **Test coverage** focuses on business logic rather than 100% coverage
 - **Integration testing** through CLI commands with temporary git tags
+
+### Mock Management
+```bash
+# Regenerate mocks when interfaces change
+mockery
+
+# Generated mocks use modern EXPECT() API:
+mockFS := mocks.NewMockFileSystemProvider(t)
+mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
+```
 
 ## Build Process Requirements
 
@@ -122,3 +134,10 @@ The tool uses `.gorocket.yaml` for configuration:
 - Uses `git describe --tags --exact-match HEAD` to get version
 - Builds to `dist/` directory (must be empty before build)
 - Creates archives with consistent naming: `{module}_{version}_{os}_{arch}.{ext}`
+
+## Code Quality
+
+- **goimports** for import formatting and organization
+- **testify v1.10.0** for modern testing patterns
+- **mockery v3.5.0** for automated mock generation
+- All Provider interfaces have auto-generated mocks for testing

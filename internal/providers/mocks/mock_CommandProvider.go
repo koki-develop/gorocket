@@ -36,8 +36,8 @@ func (_m *MockCommandProvider) EXPECT() *MockCommandProvider_Expecter {
 }
 
 // BuildBinary provides a mock function for the type MockCommandProvider
-func (_mock *MockCommandProvider) BuildBinary(moduleName string, version string, osName string, arch string) (string, error) {
-	ret := _mock.Called(moduleName, version, osName, arch)
+func (_mock *MockCommandProvider) BuildBinary(moduleName string, version string, osName string, arch string, ldflags string) (string, error) {
+	ret := _mock.Called(moduleName, version, osName, arch, ldflags)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BuildBinary")
@@ -45,16 +45,16 @@ func (_mock *MockCommandProvider) BuildBinary(moduleName string, version string,
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, string, string, string) (string, error)); ok {
-		return returnFunc(moduleName, version, osName, arch)
+	if returnFunc, ok := ret.Get(0).(func(string, string, string, string, string) (string, error)); ok {
+		return returnFunc(moduleName, version, osName, arch, ldflags)
 	}
-	if returnFunc, ok := ret.Get(0).(func(string, string, string, string) string); ok {
-		r0 = returnFunc(moduleName, version, osName, arch)
+	if returnFunc, ok := ret.Get(0).(func(string, string, string, string, string) string); ok {
+		r0 = returnFunc(moduleName, version, osName, arch, ldflags)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(string, string, string, string) error); ok {
-		r1 = returnFunc(moduleName, version, osName, arch)
+	if returnFunc, ok := ret.Get(1).(func(string, string, string, string, string) error); ok {
+		r1 = returnFunc(moduleName, version, osName, arch, ldflags)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -71,11 +71,12 @@ type MockCommandProvider_BuildBinary_Call struct {
 //   - version string
 //   - osName string
 //   - arch string
-func (_e *MockCommandProvider_Expecter) BuildBinary(moduleName interface{}, version interface{}, osName interface{}, arch interface{}) *MockCommandProvider_BuildBinary_Call {
-	return &MockCommandProvider_BuildBinary_Call{Call: _e.mock.On("BuildBinary", moduleName, version, osName, arch)}
+//   - ldflags string
+func (_e *MockCommandProvider_Expecter) BuildBinary(moduleName interface{}, version interface{}, osName interface{}, arch interface{}, ldflags interface{}) *MockCommandProvider_BuildBinary_Call {
+	return &MockCommandProvider_BuildBinary_Call{Call: _e.mock.On("BuildBinary", moduleName, version, osName, arch, ldflags)}
 }
 
-func (_c *MockCommandProvider_BuildBinary_Call) Run(run func(moduleName string, version string, osName string, arch string)) *MockCommandProvider_BuildBinary_Call {
+func (_c *MockCommandProvider_BuildBinary_Call) Run(run func(moduleName string, version string, osName string, arch string, ldflags string)) *MockCommandProvider_BuildBinary_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -93,11 +94,16 @@ func (_c *MockCommandProvider_BuildBinary_Call) Run(run func(moduleName string, 
 		if args[3] != nil {
 			arg3 = args[3].(string)
 		}
+		var arg4 string
+		if args[4] != nil {
+			arg4 = args[4].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
 			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -108,7 +114,7 @@ func (_c *MockCommandProvider_BuildBinary_Call) Return(s string, err error) *Moc
 	return _c
 }
 
-func (_c *MockCommandProvider_BuildBinary_Call) RunAndReturn(run func(moduleName string, version string, osName string, arch string) (string, error)) *MockCommandProvider_BuildBinary_Call {
+func (_c *MockCommandProvider_BuildBinary_Call) RunAndReturn(run func(moduleName string, version string, osName string, arch string, ldflags string) (string, error)) *MockCommandProvider_BuildBinary_Call {
 	_c.Call.Return(run)
 	return _c
 }

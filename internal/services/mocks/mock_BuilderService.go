@@ -37,8 +37,8 @@ func (_m *MockBuilderService) EXPECT() *MockBuilderService_Expecter {
 }
 
 // BuildTargets provides a mock function for the type MockBuilderService
-func (_mock *MockBuilderService) BuildTargets(buildInfo *models.BuildInfo, targets []models.Target) ([]models.BuildResult, error) {
-	ret := _mock.Called(buildInfo, targets)
+func (_mock *MockBuilderService) BuildTargets(buildInfo *models.BuildInfo, buildConfig models.BuildConfig) ([]models.BuildResult, error) {
+	ret := _mock.Called(buildInfo, buildConfig)
 
 	if len(ret) == 0 {
 		panic("no return value specified for BuildTargets")
@@ -46,18 +46,18 @@ func (_mock *MockBuilderService) BuildTargets(buildInfo *models.BuildInfo, targe
 
 	var r0 []models.BuildResult
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, []models.Target) ([]models.BuildResult, error)); ok {
-		return returnFunc(buildInfo, targets)
+	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, models.BuildConfig) ([]models.BuildResult, error)); ok {
+		return returnFunc(buildInfo, buildConfig)
 	}
-	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, []models.Target) []models.BuildResult); ok {
-		r0 = returnFunc(buildInfo, targets)
+	if returnFunc, ok := ret.Get(0).(func(*models.BuildInfo, models.BuildConfig) []models.BuildResult); ok {
+		r0 = returnFunc(buildInfo, buildConfig)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.BuildResult)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(*models.BuildInfo, []models.Target) error); ok {
-		r1 = returnFunc(buildInfo, targets)
+	if returnFunc, ok := ret.Get(1).(func(*models.BuildInfo, models.BuildConfig) error); ok {
+		r1 = returnFunc(buildInfo, buildConfig)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -71,20 +71,20 @@ type MockBuilderService_BuildTargets_Call struct {
 
 // BuildTargets is a helper method to define mock.On call
 //   - buildInfo *models.BuildInfo
-//   - targets []models.Target
-func (_e *MockBuilderService_Expecter) BuildTargets(buildInfo interface{}, targets interface{}) *MockBuilderService_BuildTargets_Call {
-	return &MockBuilderService_BuildTargets_Call{Call: _e.mock.On("BuildTargets", buildInfo, targets)}
+//   - buildConfig models.BuildConfig
+func (_e *MockBuilderService_Expecter) BuildTargets(buildInfo interface{}, buildConfig interface{}) *MockBuilderService_BuildTargets_Call {
+	return &MockBuilderService_BuildTargets_Call{Call: _e.mock.On("BuildTargets", buildInfo, buildConfig)}
 }
 
-func (_c *MockBuilderService_BuildTargets_Call) Run(run func(buildInfo *models.BuildInfo, targets []models.Target)) *MockBuilderService_BuildTargets_Call {
+func (_c *MockBuilderService_BuildTargets_Call) Run(run func(buildInfo *models.BuildInfo, buildConfig models.BuildConfig)) *MockBuilderService_BuildTargets_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 *models.BuildInfo
 		if args[0] != nil {
 			arg0 = args[0].(*models.BuildInfo)
 		}
-		var arg1 []models.Target
+		var arg1 models.BuildConfig
 		if args[1] != nil {
-			arg1 = args[1].([]models.Target)
+			arg1 = args[1].(models.BuildConfig)
 		}
 		run(
 			arg0,
@@ -99,7 +99,7 @@ func (_c *MockBuilderService_BuildTargets_Call) Return(buildResults []models.Bui
 	return _c
 }
 
-func (_c *MockBuilderService_BuildTargets_Call) RunAndReturn(run func(buildInfo *models.BuildInfo, targets []models.Target) ([]models.BuildResult, error)) *MockBuilderService_BuildTargets_Call {
+func (_c *MockBuilderService_BuildTargets_Call) RunAndReturn(run func(buildInfo *models.BuildInfo, buildConfig models.BuildConfig) ([]models.BuildResult, error)) *MockBuilderService_BuildTargets_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -1,4 +1,5 @@
 build:
+  # ldflags: "-s -w"  # Optional: linker flags for binary optimization
   targets:
     - os: linux
       arch: [amd64, arm64]

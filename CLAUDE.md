@@ -44,6 +44,7 @@ go run main.go init
 # Build cross-platform binaries (requires git tag)
 git tag v1.0.0  # Create a version tag first
 go run main.go build
+go run main.go build --clean  # Clean dist directory before building
 git tag -d v1.0.0  # Clean up test tag
 ```
 
@@ -57,6 +58,9 @@ go test ./internal/services/... -v
 # Run tests with coverage
 go test ./internal/services -coverprofile=coverage.out
 go tool cover -html=coverage.out -o coverage.html
+
+# Run a single test
+go test -run TestBuilderService_BuildTargets ./internal/services/
 ```
 
 ## Architecture
@@ -103,6 +107,7 @@ Each CLI command follows this pattern:
 type ExampleCommand struct {
     service1 services.Service1
     service2 services.Service2
+    flagExample bool  // Command flags use flag prefix
 }
 
 func NewExampleCommand() *cobra.Command {
@@ -115,7 +120,10 @@ func NewExampleCommand() *cobra.Command {
     // Create command with services
     cmd := &ExampleCommand{service1: service1}
     
-    return &cobra.Command{RunE: cmd.run}
+    cobraCmd := &cobra.Command{RunE: cmd.run}
+    cobraCmd.Flags().BoolVar(&cmd.flagExample, "example", false, "Example flag")
+    
+    return cobraCmd
 }
 ```
 
@@ -150,8 +158,15 @@ mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
 
 - Requires a git tag on HEAD for version information
 - Uses `git describe --tags --exact-match HEAD` to get version
-- Builds to `dist/` directory (must be empty before build)
+- Builds to `dist/` directory (must be empty before build unless --clean flag is used)
 - Creates archives with consistent naming: `{module}_{version}_{os}_{arch}.{ext}`
+
+## Available Commands
+
+- `init`: Create a default .gorocket.yaml configuration file
+- `build`: Build binaries for multiple platforms (requires git tag)
+  - `--clean`: Remove dist directory before building
+- `version`: Display version information
 
 ## Code Quality
 

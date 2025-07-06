@@ -74,19 +74,19 @@ func (a *archiverService) createTarGzArchive(binaryPath, archiveName string, bui
 	if err != nil {
 		return "", fmt.Errorf("failed to create archive file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	gzipWriter := gzip.NewWriter(file)
-	defer gzipWriter.Close()
+	defer func() { _ = gzipWriter.Close() }()
 
 	tarWriter := tar.NewWriter(gzipWriter)
-	defer tarWriter.Close()
+	defer func() { _ = tarWriter.Close() }()
 
 	binaryFile, err := a.fileSystemProvider.Open(binaryPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open binary file: %w", err)
 	}
-	defer binaryFile.Close()
+	defer func() { _ = binaryFile.Close() }()
 
 	binaryInfo, err := a.fileSystemProvider.Stat(binaryPath)
 	if err != nil {
@@ -120,16 +120,16 @@ func (a *archiverService) createZipArchive(binaryPath, archiveName string, build
 	if err != nil {
 		return "", fmt.Errorf("failed to create archive file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	zipWriter := zip.NewWriter(file)
-	defer zipWriter.Close()
+	defer func() { _ = zipWriter.Close() }()
 
 	binaryFile, err := a.fileSystemProvider.Open(binaryPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to open binary file: %w", err)
 	}
-	defer binaryFile.Close()
+	defer func() { _ = binaryFile.Close() }()
 
 	dirName := fmt.Sprintf("%s_%s_%s_%s", buildInfo.ModuleName, buildInfo.Version, target.OS, target.Arch)
 	binaryNameInArchive := filepath.Join(dirName, strings.TrimSuffix(filepath.Base(binaryPath), filepath.Ext(binaryPath)))

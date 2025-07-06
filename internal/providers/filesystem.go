@@ -65,7 +65,7 @@ func (f *fileSystemProvider) GetModuleName() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to open go.mod: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

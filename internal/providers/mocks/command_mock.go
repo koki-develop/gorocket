@@ -1,28 +1,32 @@
 package mocks
 
+import (
+	"github.com/stretchr/testify/mock"
+)
+
 type MockCommandProvider struct {
-	RunFunc           func(name string, args ...string) (string, error)
-	RunWithEnvFunc    func(name string, env []string, args ...string) error
-	BuildBinaryFunc   func(moduleName, version, osName, arch string) (string, error)
+	mock.Mock
 }
 
 func (m *MockCommandProvider) Run(name string, args ...string) (string, error) {
-	if m.RunFunc != nil {
-		return m.RunFunc(name, args...)
+	arguments := []interface{}{name}
+	for _, arg := range args {
+		arguments = append(arguments, arg)
 	}
-	return "", nil
+	callArgs := m.Called(arguments...)
+	return callArgs.String(0), callArgs.Error(1)
 }
 
 func (m *MockCommandProvider) RunWithEnv(name string, env []string, args ...string) error {
-	if m.RunWithEnvFunc != nil {
-		return m.RunWithEnvFunc(name, env, args...)
+	arguments := []interface{}{name, env}
+	for _, arg := range args {
+		arguments = append(arguments, arg)
 	}
-	return nil
+	callArgs := m.Called(arguments...)
+	return callArgs.Error(0)
 }
 
 func (m *MockCommandProvider) BuildBinary(moduleName, version, osName, arch string) (string, error) {
-	if m.BuildBinaryFunc != nil {
-		return m.BuildBinaryFunc(moduleName, version, osName, arch)
-	}
-	return "dist/test-binary", nil
+	args := m.Called(moduleName, version, osName, arch)
+	return args.String(0), args.Error(1)
 }

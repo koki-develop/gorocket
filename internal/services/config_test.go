@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestConfigService_ConfigExists(t *testing.T) {
@@ -28,18 +30,13 @@ func TestConfigService_ConfigExists(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{
-				StatFunc: func(path string) (os.FileInfo, error) {
-					return nil, tt.statErr
-				},
-			}
+			mockFS := &mocks.MockFileSystemProvider{}
+			mockFS.On("Stat", ".gorocket.yaml").Return(nil, tt.statErr)
 
 			service := NewConfigService(mockFS)
 			result := service.ConfigExists()
 
-			if result != tt.expected {
-				t.Errorf("expected %v, got %v", tt.expected, result)
-			}
+			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
@@ -73,29 +70,21 @@ func TestConfigService_CreateDefaultConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{
-				StatFunc: func(path string) (os.FileInfo, error) {
-					if tt.configExists {
-						return nil, nil
-					}
-					return nil, os.ErrNotExist
-				},
-				WriteFileFunc: func(path string, data []byte, perm os.FileMode) error {
-					return tt.writeFileErr
-				},
+			mockFS := &mocks.MockFileSystemProvider{}
+			if tt.configExists {
+				mockFS.On("Stat", ".gorocket.yaml").Return(nil, nil)
+			} else {
+				mockFS.On("Stat", ".gorocket.yaml").Return(nil, os.ErrNotExist)
 			}
+			mockFS.On("WriteFile", ".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
 
 			service := NewConfigService(mockFS)
 			err := service.CreateDefaultConfig()
 
 			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error, but got nil")
-				}
+				assert.Error(t, err)
 			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
+				assert.NoError(t, err)
 			}
 		})
 	}
@@ -129,26 +118,17 @@ func TestConfigService_LoadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockFS := &mocks.MockFileSystemProvider{
-				ReadFileFunc: func(path string) ([]byte, error) {
-					return tt.fileContent, tt.readFileErr
-				},
-			}
+			mockFS := &mocks.MockFileSystemProvider{}
+			mockFS.On("ReadFile", ".gorocket.yaml").Return(tt.fileContent, tt.readFileErr)
 
 			service := NewConfigService(mockFS)
 			config, err := service.LoadConfig()
 
 			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error, but got nil")
-				}
+				assert.Error(t, err)
 			} else {
-				if err != nil {
-					t.Errorf("unexpected error: %v", err)
-				}
-				if config == nil {
-					t.Errorf("expected config, but got nil")
-				}
+				assert.NoError(t, err)
+				assert.NotNil(t, config)
 			}
 		})
 	}
@@ -159,7 +139,5 @@ func TestConfigService_GetDefaultConfigData(t *testing.T) {
 	service := NewConfigService(mockFS)
 	data := service.GetDefaultConfigData()
 
-	if len(data) == 0 {
-		t.Errorf("expected default config data, but got empty")
-	}
+	assert.NotEmpty(t, data)
 }

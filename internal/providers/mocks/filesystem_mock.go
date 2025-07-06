@@ -3,87 +3,72 @@ package mocks
 import (
 	"io"
 	"os"
+
+	"github.com/stretchr/testify/mock"
 )
 
 type MockFileSystemProvider struct {
-	ReadFileFunc     func(path string) ([]byte, error)
-	WriteFileFunc    func(path string, data []byte, perm os.FileMode) error
-	OpenFunc         func(path string) (io.ReadCloser, error)
-	CreateFunc       func(path string) (io.WriteCloser, error)
-	StatFunc         func(path string) (os.FileInfo, error)
-	MkdirAllFunc     func(path string, perm os.FileMode) error
-	RemoveFunc       func(path string) error
-	RemoveAllFunc    func(path string) error
-	GetModuleNameFunc func() (string, error)
-	EnsureDistDirFunc func() error
+	mock.Mock
 }
 
 func (m *MockFileSystemProvider) ReadFile(path string) ([]byte, error) {
-	if m.ReadFileFunc != nil {
-		return m.ReadFileFunc(path)
+	args := m.Called(path)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, nil
+	return args.Get(0).([]byte), args.Error(1)
 }
 
 func (m *MockFileSystemProvider) WriteFile(path string, data []byte, perm os.FileMode) error {
-	if m.WriteFileFunc != nil {
-		return m.WriteFileFunc(path, data, perm)
-	}
-	return nil
+	args := m.Called(path, data, perm)
+	return args.Error(0)
 }
 
 func (m *MockFileSystemProvider) Open(path string) (io.ReadCloser, error) {
-	if m.OpenFunc != nil {
-		return m.OpenFunc(path)
+	args := m.Called(path)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, nil
+	return args.Get(0).(io.ReadCloser), args.Error(1)
 }
 
 func (m *MockFileSystemProvider) Create(path string) (io.WriteCloser, error) {
-	if m.CreateFunc != nil {
-		return m.CreateFunc(path)
+	args := m.Called(path)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, nil
+	return args.Get(0).(io.WriteCloser), args.Error(1)
 }
 
 func (m *MockFileSystemProvider) Stat(path string) (os.FileInfo, error) {
-	if m.StatFunc != nil {
-		return m.StatFunc(path)
+	args := m.Called(path)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
 	}
-	return nil, nil
+	return args.Get(0).(os.FileInfo), args.Error(1)
 }
 
 func (m *MockFileSystemProvider) MkdirAll(path string, perm os.FileMode) error {
-	if m.MkdirAllFunc != nil {
-		return m.MkdirAllFunc(path, perm)
-	}
-	return nil
+	args := m.Called(path, perm)
+	return args.Error(0)
 }
 
 func (m *MockFileSystemProvider) Remove(path string) error {
-	if m.RemoveFunc != nil {
-		return m.RemoveFunc(path)
-	}
-	return nil
+	args := m.Called(path)
+	return args.Error(0)
 }
 
 func (m *MockFileSystemProvider) RemoveAll(path string) error {
-	if m.RemoveAllFunc != nil {
-		return m.RemoveAllFunc(path)
-	}
-	return nil
+	args := m.Called(path)
+	return args.Error(0)
 }
 
 func (m *MockFileSystemProvider) GetModuleName() (string, error) {
-	if m.GetModuleNameFunc != nil {
-		return m.GetModuleNameFunc()
-	}
-	return "test-module", nil
+	args := m.Called()
+	return args.String(0), args.Error(1)
 }
 
 func (m *MockFileSystemProvider) EnsureDistDir() error {
-	if m.EnsureDistDirFunc != nil {
-		return m.EnsureDistDirFunc()
-	}
-	return nil
+	args := m.Called()
+	return args.Error(0)
 }

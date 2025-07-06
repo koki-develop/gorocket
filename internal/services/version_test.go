@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestVersionService_GetBuildInfo(t *testing.T) {
@@ -48,40 +49,23 @@ func TestVersionService_GetBuildInfo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockGit := &mocks.MockGitProvider{
-				GetCurrentVersionFunc: func() (string, error) {
-					return tt.version, tt.versionErr
-				},
-			}
+			mockGit := &mocks.MockGitProvider{}
+			mockGit.On("GetCurrentVersion").Return(tt.version, tt.versionErr)
 
-			mockFS := &mocks.MockFileSystemProvider{
-				GetModuleNameFunc: func() (string, error) {
-					return tt.moduleName, tt.moduleNameErr
-				},
-			}
+			mockFS := &mocks.MockFileSystemProvider{}
+			mockFS.On("GetModuleName").Return(tt.moduleName, tt.moduleNameErr)
 
 			service := NewVersionService(mockGit, mockFS)
 			buildInfo, err := service.GetBuildInfo()
 
 			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error, but got nil")
-				}
+				assert.Error(t, err)
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if buildInfo.ModuleName != tt.expectedModule {
-				t.Errorf("expected module name %s, got %s", tt.expectedModule, buildInfo.ModuleName)
-			}
-
-			if buildInfo.Version != tt.expectedVersion {
-				t.Errorf("expected version %s, got %s", tt.expectedVersion, buildInfo.Version)
-			}
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expectedModule, buildInfo.ModuleName)
+			assert.Equal(t, tt.expectedVersion, buildInfo.Version)
 		})
 	}
 }

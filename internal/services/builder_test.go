@@ -6,6 +6,8 @@ import (
 
 	"github.com/koki-develop/gorocket/internal/models"
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestBuilderService_BuildTargets(t *testing.T) {
@@ -48,13 +50,11 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockCommand := &mocks.MockCommandProvider{
-				BuildBinaryFunc: func(moduleName, version, osName, arch string) (string, error) {
-					if tt.buildBinaryErr != nil {
-						return "", tt.buildBinaryErr
-					}
-					return "dist/binary", nil
-				},
+			mockCommand := &mocks.MockCommandProvider{}
+			if tt.buildBinaryErr != nil {
+				mockCommand.On("BuildBinary", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("", tt.buildBinaryErr)
+			} else {
+				mockCommand.On("BuildBinary", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return("dist/binary", nil)
 			}
 
 			mockFS := &mocks.MockFileSystemProvider{}
@@ -63,35 +63,21 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 			results, err := service.BuildTargets(tt.buildInfo, tt.targets)
 
 			if tt.expectedError {
-				if err == nil {
-					t.Errorf("expected error, but got nil")
-				}
+				assert.Error(t, err)
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if len(results) != tt.expectedResults {
-				t.Errorf("expected %d results, got %d", tt.expectedResults, len(results))
-			}
+			assert.NoError(t, err)
+			assert.Len(t, results, tt.expectedResults)
 
 			if tt.buildBinaryErr != nil {
 				for _, result := range results {
-					if result.Error == nil {
-						t.Errorf("expected error in result, but got nil")
-					}
+					assert.Error(t, result.Error)
 				}
 			} else {
 				for _, result := range results {
-					if result.Error != nil {
-						t.Errorf("unexpected error in result: %v", result.Error)
-					}
-					if result.BinaryPath == "" {
-						t.Errorf("expected binary path, but got empty string")
-					}
+					assert.NoError(t, result.Error)
+					assert.NotEmpty(t, result.BinaryPath)
 				}
 			}
 		})

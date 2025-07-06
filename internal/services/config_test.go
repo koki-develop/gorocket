@@ -77,14 +77,7 @@ func TestConfigService_CreateDefaultConfig(t *testing.T) {
 				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, nil)
 			} else {
 				mockFS.EXPECT().Stat(".gorocket.yaml").Return(nil, os.ErrNotExist)
-				if tt.writeFileErr != nil {
-					mockFS.EXPECT().Create(".gorocket.yaml").Return(nil, tt.writeFileErr)
-				} else {
-					mockWriter := mocks.NewMockWriteCloser(t)
-					mockWriter.EXPECT().Write(mock.AnythingOfType("[]uint8")).Return(19, nil)
-					mockWriter.EXPECT().Close().Return(nil)
-					mockFS.EXPECT().Create(".gorocket.yaml").Return(mockWriter, nil)
-				}
+				mockFS.EXPECT().WriteFile(".gorocket.yaml", mock.AnythingOfType("[]uint8"), os.FileMode(0644)).Return(tt.writeFileErr)
 			}
 
 			service := NewConfigService(mockFS)

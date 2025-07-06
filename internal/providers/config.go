@@ -38,14 +38,7 @@ func (c *configProvider) CreateDefaultConfig() error {
 		return fmt.Errorf("%s already exists", models.ConfigFileName)
 	}
 
-	file, err := c.fsProvider.Create(models.ConfigFileName)
-	if err != nil {
-		return err
-	}
-	defer func() { _ = file.Close() }()
-
-	_, err = file.Write(defaultConfigYAML)
-	return err
+	return c.fsProvider.WriteFile(models.ConfigFileName, defaultConfigYAML, 0644)
 }
 
 func (c *configProvider) LoadConfig() (*models.Config, error) {

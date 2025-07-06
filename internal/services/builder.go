@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/hashicorp/go-multierror"
 	"github.com/koki-develop/gorocket/internal/models"
 	"github.com/koki-develop/gorocket/internal/providers"
 )
@@ -23,6 +24,7 @@ func NewBuilderService(commandProvider providers.CommandProvider, fileSystemProv
 
 func (b *builderService) BuildTargets(buildInfo *models.BuildInfo, targets []models.Target) ([]models.BuildResult, error) {
 	var results []models.BuildResult
+	var errGroup *multierror.Error
 
 	for _, target := range targets {
 		for _, arch := range target.Arch {
@@ -32,13 +34,20 @@ func (b *builderService) BuildTargets(buildInfo *models.BuildInfo, targets []mod
 			}
 
 			binaryPath, err := b.commandProvider.BuildBinary(buildInfo.ModuleName, buildInfo.Version, target.OS, arch)
+			if err != nil {
+				errGroup = multierror.Append(errGroup, err)
+				continue
+			}
 
 			results = append(results, models.BuildResult{
 				Target:     buildTarget,
 				BinaryPath: binaryPath,
-				Error:      err,
 			})
 		}
+	}
+
+	if err := errGroup.ErrorOrNil(); err != nil {
+		return nil, err
 	}
 
 	return results, nil

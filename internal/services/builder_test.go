@@ -43,8 +43,8 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 				{OS: "linux", Arch: []string{"amd64"}},
 			},
 			buildBinaryErr:  errors.New("build error"),
-			expectedResults: 1,
-			expectedError:   false,
+			expectedResults: 0,
+			expectedError:   true,
 		},
 	}
 
@@ -64,21 +64,14 @@ func TestBuilderService_BuildTargets(t *testing.T) {
 
 			if tt.expectedError {
 				assert.Error(t, err)
-				return
+			} else {
+				assert.NoError(t, err)
 			}
-
-			assert.NoError(t, err)
+			
 			assert.Len(t, results, tt.expectedResults)
 
-			if tt.buildBinaryErr != nil {
-				for _, result := range results {
-					assert.Error(t, result.Error)
-				}
-			} else {
-				for _, result := range results {
-					assert.NoError(t, result.Error)
-					assert.NotEmpty(t, result.BinaryPath)
-				}
+			for _, result := range results {
+				assert.NotEmpty(t, result.BinaryPath)
 			}
 		})
 	}

@@ -32,22 +32,18 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-					Error:       nil,
 				},
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "arm64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_arm64.tar.gz",
-					Error:       nil,
 				},
 				{
 					Target:      models.BuildTarget{OS: "linux", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_linux_amd64.tar.gz",
-					Error:       nil,
 				},
 				{
 					Target:      models.BuildTarget{OS: "linux", Arch: "arm64"},
 					ArchivePath: "dist/gorocket_v1.0.0_linux_arm64.tar.gz",
-					Error:       nil,
 				},
 			},
 			brewConfig: models.BrewConfig{
@@ -69,18 +65,18 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 					filepath.Join("dist", "gorocket.rb"),
 					mock.MatchedBy(func(content []byte) bool {
 						contentStr := string(content)
-						return assert.Contains(t, contentStr, "# typed: strict") &&
-							assert.Contains(t, contentStr, "# frozen_string_literal: true") &&
-							assert.Contains(t, contentStr, "class Gorocket < Formula") &&
-							assert.Contains(t, contentStr, `version "1.0.0"`) &&
-							assert.Contains(t, contentStr, "darwin_amd64_sha256") &&
-							assert.Contains(t, contentStr, "darwin_arm64_sha256") &&
-							assert.Contains(t, contentStr, "linux_amd64_sha256") &&
-							assert.Contains(t, contentStr, "linux_arm64_sha256") &&
-							assert.Contains(t, contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_darwin_amd64.tar.gz") &&
-							assert.Contains(t, contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_darwin_arm64.tar.gz") &&
-							assert.Contains(t, contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_linux_amd64.tar.gz") &&
-							assert.Contains(t, contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_linux_arm64.tar.gz")
+						return strings.Contains(contentStr, "# typed: strict") &&
+							strings.Contains(contentStr, "# frozen_string_literal: true") &&
+							strings.Contains(contentStr, "class Gorocket < Formula") &&
+							strings.Contains(contentStr, `version "1.0.0"`) &&
+							strings.Contains(contentStr, "darwin_amd64_sha256") &&
+							strings.Contains(contentStr, "darwin_arm64_sha256") &&
+							strings.Contains(contentStr, "linux_amd64_sha256") &&
+							strings.Contains(contentStr, "linux_arm64_sha256") &&
+							strings.Contains(contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_darwin_amd64.tar.gz") &&
+							strings.Contains(contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_darwin_arm64.tar.gz") &&
+							strings.Contains(contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_linux_amd64.tar.gz") &&
+							strings.Contains(contentStr, "https://github.com/koki-develop/gorocket/releases/download/v1.0.0/gorocket_v1.0.0_linux_arm64.tar.gz")
 					}),
 					mock.AnythingOfType("fs.FileMode"),
 				).Return(nil)
@@ -88,7 +84,7 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "skip failed archive results",
+			name: "successful formula generation with multiple platforms",
 			buildInfo: models.BuildInfo{
 				ModuleName: "gorocket",
 				Version:    "v1.0.0",
@@ -97,12 +93,10 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-					Error:       nil,
 				},
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "arm64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_arm64.tar.gz",
-					Error:       fmt.Errorf("build failed"),
 				},
 			},
 			brewConfig: models.BrewConfig{
@@ -112,15 +106,16 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				},
 			},
 			setupMocks: func(mockFS *mocks.MockFileSystemProvider) {
-				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content")), nil)
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_amd64.tar.gz").Return(io.NopCloser(strings.NewReader("content1")), nil)
 				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_amd64_sha256", nil)
+				mockFS.EXPECT().Open("dist/gorocket_v1.0.0_darwin_arm64.tar.gz").Return(io.NopCloser(strings.NewReader("content2")), nil)
+				mockFS.EXPECT().CalculateSHA256(mock.Anything).Return("darwin_arm64_sha256", nil)
 				mockFS.EXPECT().WriteFile(
 					filepath.Join("dist", "gorocket.rb"),
 					mock.MatchedBy(func(content []byte) bool {
 						contentStr := string(content)
-						return assert.Contains(t, contentStr, "class Gorocket < Formula") &&
-							assert.Contains(t, contentStr, "darwin_amd64_sha256") &&
-							assert.NotContains(t, contentStr, "darwin_arm64_sha256")
+						return strings.Contains(contentStr, "class Gorocket < Formula") &&
+							strings.Contains(contentStr, "darwin_amd64_sha256")
 					}),
 					mock.AnythingOfType("fs.FileMode"),
 				).Return(nil)
@@ -137,7 +132,6 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-					Error:       nil,
 				},
 			},
 			brewConfig: models.BrewConfig{
@@ -161,7 +155,6 @@ func TestFormulaService_GenerateFormula(t *testing.T) {
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-					Error:       nil,
 				},
 			},
 			brewConfig: models.BrewConfig{
@@ -213,12 +206,10 @@ func TestFormulaService_buildFormulaInfo(t *testing.T) {
 		{
 			Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 			ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-			Error:       nil,
 		},
 		{
 			Target:      models.BuildTarget{OS: "linux", Arch: "arm64"},
 			ArchivePath: "dist/gorocket_v1.0.0_linux_arm64.tar.gz",
-			Error:       nil,
 		},
 	}
 

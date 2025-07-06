@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	"github.com/koki-develop/gorocket/internal/models"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -84,6 +85,61 @@ func (_c *MockGitProvider_GetCurrentVersion_Call) Return(s string, err error) *M
 }
 
 func (_c *MockGitProvider_GetCurrentVersion_Call) RunAndReturn(run func() (string, error)) *MockGitProvider_GetCurrentVersion_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetGitHubRepository provides a mock function for the type MockGitProvider
+func (_mock *MockGitProvider) GetGitHubRepository() (*models.GitHubRepository, error) {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetGitHubRepository")
+	}
+
+	var r0 *models.GitHubRepository
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (*models.GitHubRepository, error)); ok {
+		return returnFunc()
+	}
+	if returnFunc, ok := ret.Get(0).(func() *models.GitHubRepository); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*models.GitHubRepository)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockGitProvider_GetGitHubRepository_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetGitHubRepository'
+type MockGitProvider_GetGitHubRepository_Call struct {
+	*mock.Call
+}
+
+// GetGitHubRepository is a helper method to define mock.On call
+func (_e *MockGitProvider_Expecter) GetGitHubRepository() *MockGitProvider_GetGitHubRepository_Call {
+	return &MockGitProvider_GetGitHubRepository_Call{Call: _e.mock.On("GetGitHubRepository")}
+}
+
+func (_c *MockGitProvider_GetGitHubRepository_Call) Run(run func()) *MockGitProvider_GetGitHubRepository_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockGitProvider_GetGitHubRepository_Call) Return(gitHubRepository *models.GitHubRepository, err error) *MockGitProvider_GetGitHubRepository_Call {
+	_c.Call.Return(gitHubRepository, err)
+	return _c
+}
+
+func (_c *MockGitProvider_GetGitHubRepository_Call) RunAndReturn(run func() (*models.GitHubRepository, error)) *MockGitProvider_GetGitHubRepository_Call {
 	_c.Call.Return(run)
 	return _c
 }

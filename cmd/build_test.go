@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestBuildCommand_CleanFlag removed as it was testing trivial flag assignment
 
 func TestBuildCommand_FormulaGeneration(t *testing.T) {
 	tests := []struct {
@@ -72,7 +71,6 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 				{
 					Target:     models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					BinaryPath: "dist/gorocket_darwin_amd64",
-					Error:      nil,
 				},
 			}
 
@@ -80,7 +78,6 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 				{
 					Target:      models.BuildTarget{OS: "darwin", Arch: "amd64"},
 					ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz",
-					Error:       nil,
 				},
 			}
 
@@ -109,7 +106,7 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 			}
 
 			// Execute
-			err := buildCmd.run(nil, nil)
+			err := buildCmd.run()
 
 			// Assert
 			if tt.expectErr {
@@ -152,15 +149,15 @@ func TestBuildCommand_FullWorkflow(t *testing.T) {
 	}
 
 	buildResults := []models.BuildResult{
-		{Target: models.BuildTarget{OS: "darwin", Arch: "amd64"}, BinaryPath: "dist/gorocket_darwin_amd64", Error: nil},
-		{Target: models.BuildTarget{OS: "darwin", Arch: "arm64"}, BinaryPath: "dist/gorocket_darwin_arm64", Error: nil},
-		{Target: models.BuildTarget{OS: "linux", Arch: "amd64"}, BinaryPath: "dist/gorocket_linux_amd64", Error: nil},
+		{Target: models.BuildTarget{OS: "darwin", Arch: "amd64"}, BinaryPath: "dist/gorocket_darwin_amd64"},
+		{Target: models.BuildTarget{OS: "darwin", Arch: "arm64"}, BinaryPath: "dist/gorocket_darwin_arm64"},
+		{Target: models.BuildTarget{OS: "linux", Arch: "amd64"}, BinaryPath: "dist/gorocket_linux_amd64"},
 	}
 
 	archiveResults := []models.ArchiveResult{
-		{Target: models.BuildTarget{OS: "darwin", Arch: "amd64"}, ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz", Error: nil},
-		{Target: models.BuildTarget{OS: "darwin", Arch: "arm64"}, ArchivePath: "dist/gorocket_v1.0.0_darwin_arm64.tar.gz", Error: nil},
-		{Target: models.BuildTarget{OS: "linux", Arch: "amd64"}, ArchivePath: "dist/gorocket_v1.0.0_linux_amd64.tar.gz", Error: nil},
+		{Target: models.BuildTarget{OS: "darwin", Arch: "amd64"}, ArchivePath: "dist/gorocket_v1.0.0_darwin_amd64.tar.gz"},
+		{Target: models.BuildTarget{OS: "darwin", Arch: "arm64"}, ArchivePath: "dist/gorocket_v1.0.0_darwin_arm64.tar.gz"},
+		{Target: models.BuildTarget{OS: "linux", Arch: "amd64"}, ArchivePath: "dist/gorocket_v1.0.0_linux_amd64.tar.gz"},
 	}
 
 	// Setup expectations in the order they should be called
@@ -191,7 +188,7 @@ func TestBuildCommand_FullWorkflow(t *testing.T) {
 	}
 
 	// Execute
-	err := buildCmd.run(nil, nil)
+	err := buildCmd.run()
 
 	// Assert
 	assert.NoError(t, err)

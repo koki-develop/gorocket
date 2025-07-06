@@ -25,11 +25,13 @@ func NewInitCommand() *cobra.Command {
 		Use:   "init",
 		Short: "Initialize gorocket configuration",
 		Long:  fmt.Sprintf("Initialize gorocket configuration by creating a %s file in the current directory.", models.ConfigFileName),
-		RunE:  initCmd.run,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return initCmd.run()
+		},
 	}
 }
 
-func (ic *InitCommand) run(cmd *cobra.Command, args []string) error {
+func (ic *InitCommand) run() error {
 	if ic.configService.ConfigExists() {
 		return fmt.Errorf("%s already exists", models.ConfigFileName)
 	}

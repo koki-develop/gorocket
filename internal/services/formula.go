@@ -49,9 +49,6 @@ func (s *formulaService) buildFormulaInfo(buildInfo models.BuildInfo, archiveRes
 	platformURLs := make(map[string]map[string]models.FormulaURL)
 
 	for _, result := range archiveResults {
-		if result.Error != nil {
-			continue
-		}
 
 		file, err := s.fsProvider.Open(result.ArchivePath)
 		if err != nil {

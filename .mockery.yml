@@ -17,6 +17,7 @@ packages:
       GitProvider:
       CommandProvider:
       FileSystemProvider:
+      GitHubProvider:
   github.com/koki-develop/gorocket/internal/services:
     interfaces:
       VersionService:

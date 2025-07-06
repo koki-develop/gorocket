@@ -42,13 +42,15 @@ func (c *configProvider) CreateDefaultConfig() error {
 }
 
 func (c *configProvider) LoadConfig() (*models.Config, error) {
-	data, err := c.fsProvider.ReadFile(models.ConfigFileName)
+	file, err := c.fsProvider.Open(models.ConfigFileName)
 	if err != nil {
 		return nil, err
 	}
+	defer func() { _ = file.Close() }()
 
 	var config models.Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	decoder := yaml.NewDecoder(file)
+	if err := decoder.Decode(&config); err != nil {
 		return nil, err
 	}
 

@@ -38,6 +38,66 @@ func (_m *MockFileSystemProvider) EXPECT() *MockFileSystemProvider_Expecter {
 	return &MockFileSystemProvider_Expecter{mock: &_m.Mock}
 }
 
+// CalculateSHA256 provides a mock function for the type MockFileSystemProvider
+func (_mock *MockFileSystemProvider) CalculateSHA256(r io.Reader) (string, error) {
+	ret := _mock.Called(r)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CalculateSHA256")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(io.Reader) (string, error)); ok {
+		return returnFunc(r)
+	}
+	if returnFunc, ok := ret.Get(0).(func(io.Reader) string); ok {
+		r0 = returnFunc(r)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(io.Reader) error); ok {
+		r1 = returnFunc(r)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockFileSystemProvider_CalculateSHA256_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CalculateSHA256'
+type MockFileSystemProvider_CalculateSHA256_Call struct {
+	*mock.Call
+}
+
+// CalculateSHA256 is a helper method to define mock.On call
+//   - r io.Reader
+func (_e *MockFileSystemProvider_Expecter) CalculateSHA256(r interface{}) *MockFileSystemProvider_CalculateSHA256_Call {
+	return &MockFileSystemProvider_CalculateSHA256_Call{Call: _e.mock.On("CalculateSHA256", r)}
+}
+
+func (_c *MockFileSystemProvider_CalculateSHA256_Call) Run(run func(r io.Reader)) *MockFileSystemProvider_CalculateSHA256_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 io.Reader
+		if args[0] != nil {
+			arg0 = args[0].(io.Reader)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockFileSystemProvider_CalculateSHA256_Call) Return(s string, err error) *MockFileSystemProvider_CalculateSHA256_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockFileSystemProvider_CalculateSHA256_Call) RunAndReturn(run func(r io.Reader) (string, error)) *MockFileSystemProvider_CalculateSHA256_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function for the type MockFileSystemProvider
 func (_mock *MockFileSystemProvider) Create(path string) (io.WriteCloser, error) {
 	ret := _mock.Called(path)

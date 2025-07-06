@@ -2,7 +2,9 @@ package services
 
 import (
 	"errors"
+	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
@@ -119,7 +121,11 @@ func TestConfigService_LoadConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockFS := mocks.NewMockFileSystemProvider(t)
-			mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(tt.fileContent, tt.readFileErr)
+			if tt.readFileErr != nil {
+				mockFS.EXPECT().Open(".gorocket.yaml").Return(nil, tt.readFileErr)
+			} else {
+				mockFS.EXPECT().Open(".gorocket.yaml").Return(io.NopCloser(strings.NewReader(string(tt.fileContent))), nil)
+			}
 
 			service := NewConfigService(mockFS)
 			config, err := service.LoadConfig()

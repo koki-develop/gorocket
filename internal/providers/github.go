@@ -12,7 +12,7 @@ import (
 )
 
 type GitHubProvider interface {
-	ReleaseExists(ctx context.Context, repo *models.GitHubRepository, tagName string) (bool, error)
+	GetRelease(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error)
 	CreateRelease(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error)
 	UploadAssets(ctx context.Context, repo *models.GitHubRepository, release *github.RepositoryRelease, assets []models.ReleaseAsset) error
 	UpdateTapRepository(ctx context.Context, tapRepo *models.Repository, formula string, moduleName, version string) error
@@ -34,15 +34,15 @@ func NewGitHubProvider(token string, fsProvider FileSystemProvider) GitHubProvid
 	}
 }
 
-func (g *gitHubProvider) ReleaseExists(ctx context.Context, repo *models.GitHubRepository, tagName string) (bool, error) {
-	_, resp, err := g.client.Repositories.GetReleaseByTag(ctx, repo.Owner, repo.Name, tagName)
+func (g *gitHubProvider) GetRelease(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error) {
+	release, resp, err := g.client.Repositories.GetReleaseByTag(ctx, repo.Owner, repo.Name, tagName)
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return false, nil
+			return nil, nil
 		}
-		return false, fmt.Errorf("failed to check release existence: %w", err)
+		return nil, fmt.Errorf("failed to get release: %w", err)
 	}
-	return true, nil
+	return release, nil
 }
 
 func (g *gitHubProvider) CreateRelease(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error) {

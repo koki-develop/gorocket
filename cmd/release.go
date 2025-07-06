@@ -96,9 +96,9 @@ func (rc *ReleaseCommand) run() error {
 
 	// Check if release already exists
 	fmt.Println("Checking for existing release...")
-	releaseExists, err := rc.githubProvider.ReleaseExists(ctx, githubRepo, buildInfo.Version)
+	existingRelease, err := rc.githubProvider.GetRelease(ctx, githubRepo, buildInfo.Version)
 	if err != nil {
-		return fmt.Errorf("failed to check if release exists: %w", err)
+		return fmt.Errorf("failed to get release: %w", err)
 	}
 
 	var releaseURL string
@@ -112,7 +112,7 @@ func (rc *ReleaseCommand) run() error {
 		})
 	}
 
-	if !releaseExists {
+	if existingRelease == nil {
 		fmt.Println("Creating GitHub Release...")
 		githubRelease, err := rc.githubProvider.CreateRelease(ctx, githubRepo, buildInfo.Version)
 		if err != nil {
@@ -125,7 +125,7 @@ func (rc *ReleaseCommand) run() error {
 			return fmt.Errorf("failed to upload assets: %w", err)
 		}
 	} else {
-		releaseURL = fmt.Sprintf("https://github.com/%s/%s/releases/tag/%s", githubRepo.Owner, githubRepo.Name, buildInfo.Version)
+		releaseURL = *existingRelease.HTMLURL
 		fmt.Printf("Release %s already exists\n", buildInfo.Version)
 	}
 

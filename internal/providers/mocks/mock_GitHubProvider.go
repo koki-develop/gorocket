@@ -113,23 +113,25 @@ func (_c *MockGitHubProvider_CreateRelease_Call) RunAndReturn(run func(ctx conte
 	return _c
 }
 
-// ReleaseExists provides a mock function for the type MockGitHubProvider
-func (_mock *MockGitHubProvider) ReleaseExists(ctx context.Context, repo *models.GitHubRepository, tagName string) (bool, error) {
+// GetRelease provides a mock function for the type MockGitHubProvider
+func (_mock *MockGitHubProvider) GetRelease(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error) {
 	ret := _mock.Called(ctx, repo, tagName)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ReleaseExists")
+		panic("no return value specified for GetRelease")
 	}
 
-	var r0 bool
+	var r0 *github.RepositoryRelease
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.GitHubRepository, string) (bool, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.GitHubRepository, string) (*github.RepositoryRelease, error)); ok {
 		return returnFunc(ctx, repo, tagName)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.GitHubRepository, string) bool); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *models.GitHubRepository, string) *github.RepositoryRelease); ok {
 		r0 = returnFunc(ctx, repo, tagName)
 	} else {
-		r0 = ret.Get(0).(bool)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*github.RepositoryRelease)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, *models.GitHubRepository, string) error); ok {
 		r1 = returnFunc(ctx, repo, tagName)
@@ -139,20 +141,20 @@ func (_mock *MockGitHubProvider) ReleaseExists(ctx context.Context, repo *models
 	return r0, r1
 }
 
-// MockGitHubProvider_ReleaseExists_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ReleaseExists'
-type MockGitHubProvider_ReleaseExists_Call struct {
+// MockGitHubProvider_GetRelease_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelease'
+type MockGitHubProvider_GetRelease_Call struct {
 	*mock.Call
 }
 
-// ReleaseExists is a helper method to define mock.On call
+// GetRelease is a helper method to define mock.On call
 //   - ctx context.Context
 //   - repo *models.GitHubRepository
 //   - tagName string
-func (_e *MockGitHubProvider_Expecter) ReleaseExists(ctx interface{}, repo interface{}, tagName interface{}) *MockGitHubProvider_ReleaseExists_Call {
-	return &MockGitHubProvider_ReleaseExists_Call{Call: _e.mock.On("ReleaseExists", ctx, repo, tagName)}
+func (_e *MockGitHubProvider_Expecter) GetRelease(ctx interface{}, repo interface{}, tagName interface{}) *MockGitHubProvider_GetRelease_Call {
+	return &MockGitHubProvider_GetRelease_Call{Call: _e.mock.On("GetRelease", ctx, repo, tagName)}
 }
 
-func (_c *MockGitHubProvider_ReleaseExists_Call) Run(run func(ctx context.Context, repo *models.GitHubRepository, tagName string)) *MockGitHubProvider_ReleaseExists_Call {
+func (_c *MockGitHubProvider_GetRelease_Call) Run(run func(ctx context.Context, repo *models.GitHubRepository, tagName string)) *MockGitHubProvider_GetRelease_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -175,12 +177,12 @@ func (_c *MockGitHubProvider_ReleaseExists_Call) Run(run func(ctx context.Contex
 	return _c
 }
 
-func (_c *MockGitHubProvider_ReleaseExists_Call) Return(b bool, err error) *MockGitHubProvider_ReleaseExists_Call {
-	_c.Call.Return(b, err)
+func (_c *MockGitHubProvider_GetRelease_Call) Return(repositoryRelease *github.RepositoryRelease, err error) *MockGitHubProvider_GetRelease_Call {
+	_c.Call.Return(repositoryRelease, err)
 	return _c
 }
 
-func (_c *MockGitHubProvider_ReleaseExists_Call) RunAndReturn(run func(ctx context.Context, repo *models.GitHubRepository, tagName string) (bool, error)) *MockGitHubProvider_ReleaseExists_Call {
+func (_c *MockGitHubProvider_GetRelease_Call) RunAndReturn(run func(ctx context.Context, repo *models.GitHubRepository, tagName string) (*github.RepositoryRelease, error)) *MockGitHubProvider_GetRelease_Call {
 	_c.Call.Return(run)
 	return _c
 }

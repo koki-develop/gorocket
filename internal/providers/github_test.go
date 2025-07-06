@@ -131,15 +131,15 @@ func TestGitHubProvider_ReleaseExists(t *testing.T) {
 				fsProvider: mockFsProvider,
 			}
 
-			exists, err := provider.ReleaseExists(context.Background(), tt.repo, tt.tagName)
+			release, err := provider.GetRelease(context.Background(), tt.repo, tt.tagName)
 
-			// Note: This test will likely return false and no error for non-existent repositories
+			// Note: This test will likely return nil and no error for non-existent repositories
 			// In a real implementation, we would mock the GitHub client
 			if tt.expectedError {
 				assert.Error(t, err)
 			} else {
 				// The actual result depends on GitHub API response
-				t.Logf("Release exists: %v, Error: %v", exists, err)
+				t.Logf("Release: %v, Error: %v", release, err)
 			}
 		})
 	}

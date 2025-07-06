@@ -8,7 +8,24 @@ gorocket is a Go CLI tool for cross-platform binary building and packaging. It a
 
 ## Common Commands
 
-### Development
+### Task-based Development (Recommended)
+```bash
+# Build the binary
+task build
+
+# Run tests
+task test
+task test-coverage    # With coverage report
+
+# Generate mocks
+task mocks
+
+# Code quality
+task format    # Format with goimports
+task lint      # Run golangci-lint
+```
+
+### Direct Go Commands
 ```bash
 # Run the application
 go run main.go <command>
@@ -121,7 +138,8 @@ The tool uses `.gorocket.yaml` for configuration:
 ### Mock Management
 ```bash
 # Regenerate mocks when interfaces change
-mockery
+task mocks    # Preferred
+mockery       # Direct command
 
 # Generated mocks use modern EXPECT() API:
 mockFS := mocks.NewMockFileSystemProvider(t)
@@ -137,7 +155,15 @@ mockFS.EXPECT().ReadFile(".gorocket.yaml").Return(data, nil)
 
 ## Code Quality
 
-- **goimports** for import formatting and organization
+- **goimports** for import formatting and organization (`task format`)
+- **golangci-lint** for static analysis (`task lint`)
 - **testify v1.10.0** for modern testing patterns
-- **mockery v3.5.0** for automated mock generation
+- **mockery v3.5.0** for automated mock generation (`task mocks`)
 - All Provider interfaces have auto-generated mocks for testing
+
+## Task Management
+
+The project uses go-task for common development workflows. All tasks are defined in `Taskfile.yml`:
+- Prefer `task <command>` over direct go commands
+- Use `task --list` to see all available tasks
+- Essential tasks: `build`, `test`, `test-coverage`, `mocks`, `format`, `lint`

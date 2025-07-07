@@ -8,7 +8,6 @@ import (
 )
 
 type CommandProvider interface {
-	Run(name string, args ...string) (string, error)
 	RunWithEnv(name string, env []string, args ...string) error
 	BuildBinary(moduleName, version, osName, arch, ldflags string) (string, error)
 }
@@ -17,15 +16,6 @@ type commandProvider struct{}
 
 func NewCommandProvider() CommandProvider {
 	return &commandProvider{}
-}
-
-func (c *commandProvider) Run(name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to run command %s: %w", name, err)
-	}
-	return string(output), nil
 }
 
 func (c *commandProvider) RunWithEnv(name string, env []string, args ...string) error {

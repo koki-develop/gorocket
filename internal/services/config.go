@@ -8,7 +8,7 @@ import (
 type ConfigService interface {
 	ConfigExists() bool
 	CreateDefaultConfig() error
-	LoadConfig() (*models.Config, error)
+	LoadConfig(templateData *models.TemplateData) (*models.Config, error)
 	GetDefaultConfigData() []byte
 }
 
@@ -30,8 +30,8 @@ func (c *configService) CreateDefaultConfig() error {
 	return c.configProvider.CreateDefaultConfig()
 }
 
-func (c *configService) LoadConfig() (*models.Config, error) {
-	return c.configProvider.LoadConfig()
+func (c *configService) LoadConfig(templateData *models.TemplateData) (*models.Config, error) {
+	return c.configProvider.LoadConfig(templateData)
 }
 
 func (c *configService) GetDefaultConfigData() []byte {

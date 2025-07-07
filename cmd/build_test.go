@@ -8,6 +8,7 @@ import (
 	providerMocks "github.com/koki-develop/gorocket/internal/providers/mocks"
 	serviceMocks "github.com/koki-develop/gorocket/internal/services/mocks"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestBuildCommand_FormulaGeneration(t *testing.T) {
@@ -81,8 +82,8 @@ func TestBuildCommand_FormulaGeneration(t *testing.T) {
 			}
 
 			mockConfigService.EXPECT().ConfigExists().Return(true)
-			mockConfigService.EXPECT().LoadConfig().Return(config, nil)
 			mockVersionService.EXPECT().GetBuildInfo().Return(buildInfo, nil)
+			mockConfigService.EXPECT().LoadConfig(mock.AnythingOfType("*models.TemplateData")).Return(config, nil)
 			mockFS.EXPECT().EnsureDistDir(false).Return(nil)
 			mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build).Return(buildResults, nil)
 			mockArchiverService.EXPECT().CreateArchives(buildInfo, buildResults).Return(archiveResults, nil)
@@ -161,8 +162,8 @@ func TestBuildCommand_FullWorkflow(t *testing.T) {
 
 	// Setup expectations in the order they should be called
 	mockConfigService.EXPECT().ConfigExists().Return(true)
-	mockConfigService.EXPECT().LoadConfig().Return(config, nil)
 	mockVersionService.EXPECT().GetBuildInfo().Return(buildInfo, nil)
+	mockConfigService.EXPECT().LoadConfig(mock.AnythingOfType("*models.TemplateData")).Return(config, nil)
 	mockFS.EXPECT().EnsureDistDir(true).Return(nil)
 	mockBuilderService.EXPECT().BuildTargets(buildInfo, config.Build).Return(buildResults, nil)
 	mockArchiverService.EXPECT().CreateArchives(buildInfo, buildResults).Return(archiveResults, nil)

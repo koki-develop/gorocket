@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/koki-develop/gorocket/internal/models"
 	"github.com/koki-develop/gorocket/internal/providers/mocks"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -128,7 +129,7 @@ func TestConfigService_LoadConfig(t *testing.T) {
 			}
 
 			service := NewConfigService(mockFS)
-			config, err := service.LoadConfig()
+			config, err := service.LoadConfig(nil)
 
 			if tt.expectedError {
 				assert.Error(t, err)
@@ -146,4 +147,71 @@ func TestConfigService_GetDefaultConfigData(t *testing.T) {
 	data := service.GetDefaultConfigData()
 
 	assert.NotEmpty(t, data)
+}
+
+func TestConfigService_LoadConfig_WithTemplate(t *testing.T) {
+	validTemplateYAML := `build:
+  ldflags: "-X main.version={{.Version}}"
+  targets:
+    - os: linux
+      arch: [amd64]`
+
+	tests := []struct {
+		name          string
+		fileContent   []byte
+		templateData  *models.TemplateData
+		readFileErr   error
+		expectedError bool
+	}{
+		{
+			name:        "successful template processing",
+			fileContent: []byte(validTemplateYAML),
+			templateData: &models.TemplateData{
+				Version: "v1.0.0",
+				Module:  "test-module",
+			},
+			readFileErr:   nil,
+			expectedError: false,
+		},
+		{
+			name:          "file read error",
+			fileContent:   nil,
+			templateData:  &models.TemplateData{},
+			readFileErr:   errors.New("read error"),
+			expectedError: true,
+		},
+		{
+			name: "invalid template syntax",
+			fileContent: []byte(`build:
+  ldflags: "{{.InvalidSyntax}"`),
+			templateData:  &models.TemplateData{},
+			readFileErr:   nil,
+			expectedError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockFS := mocks.NewMockFileSystemProvider(t)
+			if tt.readFileErr != nil {
+				mockFS.EXPECT().Open(".gorocket.yml").Return(nil, tt.readFileErr)
+			} else {
+				mockFS.EXPECT().Open(".gorocket.yml").Return(io.NopCloser(strings.NewReader(string(tt.fileContent))), nil)
+			}
+
+			service := NewConfigService(mockFS)
+			config, err := service.LoadConfig(tt.templateData)
+
+			if tt.expectedError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, config)
+				// Verify template was processed
+				if tt.name == "successful template processing" {
+					assert.Equal(t, "-X main.version=v1.0.0", config.Build.LdFlags)
+				}
+			}
+		})
+	}
 }

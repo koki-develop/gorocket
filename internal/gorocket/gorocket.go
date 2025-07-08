@@ -153,7 +153,7 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 	}
 
 	// Check existing release
-	release, err := g.github.GetRelease(tag)
+	release, err := g.github.GetReleaseByTag(tag)
 	if err == nil && release != nil {
 		fmt.Printf("Release %s already exists\n", tag)
 		return nil

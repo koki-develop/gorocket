@@ -45,8 +45,8 @@ func New(token, owner, repo string) *Client {
 	}
 }
 
-// GetRelease retrieves a release by tag name
-func (c *Client) GetRelease(tag string) (*Release, error) {
+// GetReleaseByTag retrieves a release by tag name
+func (c *Client) GetReleaseByTag(tag string) (*Release, error) {
 	ctx := context.Background()
 	release, resp, err := c.client.Repositories.GetReleaseByTag(ctx, c.owner, c.repo, tag)
 	if err != nil {

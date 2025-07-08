@@ -1,10 +1,7 @@
 package formula
 
 import (
-	"crypto/sha256"
 	"fmt"
-	"io"
-	"os"
 	"strings"
 	"text/template"
 )
@@ -126,22 +123,6 @@ func UpdateTapRepository(client interface {
 	commitMessage := fmt.Sprintf("Update %s to %s", moduleName, version)
 
 	return client.UpdateFile(formulaPath, formula, commitMessage)
-}
-
-// CalculateSHA256 calculates SHA256 hash of a file
-func CalculateSHA256(path string) (string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return "", fmt.Errorf("failed to open file: %w", err)
-	}
-	defer func() { _ = file.Close() }()
-
-	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		return "", fmt.Errorf("failed to calculate hash: %w", err)
-	}
-
-	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
 
 // toClassName generates class name from module name

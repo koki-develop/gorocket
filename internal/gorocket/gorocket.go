@@ -9,6 +9,7 @@ import (
 	"github.com/koki-develop/gorocket/internal/formula"
 	"github.com/koki-develop/gorocket/internal/git"
 	"github.com/koki-develop/gorocket/internal/github"
+	"github.com/koki-develop/gorocket/internal/util"
 )
 
 // GoRocket provides the main application logic
@@ -273,7 +274,12 @@ func (g *GoRocket) generateFormula(config *Config, buildInfo *BuildInfo, results
 		archivePath := filepath.Join("dist", archiveName)
 
 		// Calculate SHA256
-		sha256, err := formula.CalculateSHA256(archivePath)
+		file, err := os.Open(archivePath)
+		if err != nil {
+			return fmt.Errorf("failed to open file %s: %w", archivePath, err)
+		}
+		sha256, err := util.CalculateSHA256(file)
+		file.Close()
 		if err != nil {
 			return fmt.Errorf("failed to calculate SHA256 for %s: %w", archivePath, err)
 		}

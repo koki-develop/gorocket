@@ -32,7 +32,7 @@ type Target struct {
 }
 
 // LoadConfig loads the configuration file
-func LoadConfig(path string, data map[string]interface{}) (*Config, error) {
+func LoadConfig(path string, data map[string]any) (*Config, error) {
 	// Read file
 	content, err := os.ReadFile(path)
 	if err != nil {

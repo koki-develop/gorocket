@@ -57,7 +57,7 @@ func (b *Builder) Build(opts BuildOptions) error {
 	}
 
 	// Load config file
-	config, err := LoadConfig(b.configPath, map[string]interface{}{
+	config, err := LoadConfig(b.configPath, map[string]any{
 		"Version": buildInfo.Version,
 		"Module":  buildInfo.Module,
 	})
@@ -249,8 +249,8 @@ func getModuleName() (string, error) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "module ") {
-			module := strings.TrimPrefix(line, "module ")
+		if after, ok := strings.CutPrefix(line, "module "); ok {
+			module := after
 			return strings.TrimSpace(module), nil
 		}
 	}

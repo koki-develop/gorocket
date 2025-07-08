@@ -1,43 +1,17 @@
 package formula
 
 import (
+	_ "embed"
 	"fmt"
 	"strings"
 	"text/template"
 )
 
-const formulaTemplate = `# typed: strict
-# frozen_string_literal: true
+//go:embed formula.rb.tmpl
+var formulaTemplate string
 
-# {{.ClassName}} formula
-class {{.ClassName}} < Formula
-  version "{{.Version}}"
-
-  on_macos do
-    if Hardware::CPU.arm?
-      url "{{.MacOSARM64URL}}"
-      sha256 "{{.MacOSARM64SHA256}}"
-    else
-      url "{{.MacOSAMD64URL}}"
-      sha256 "{{.MacOSAMD64SHA256}}"
-    end
-  end
-
-  on_linux do
-    if Hardware::CPU.arm?
-      url "{{.LinuxARM64URL}}"
-      sha256 "{{.LinuxARM64SHA256}}"
-    else
-      url "{{.LinuxAMD64URL}}"
-      sha256 "{{.LinuxAMD64SHA256}}"
-    end
-  end
-
-  def install
-    bin.install "{{.ModuleName}}"
-  end
-end
-`
+// Client provides Homebrew Formula operations
+type Client struct{}
 
 // Formula holds information needed to generate Homebrew Formula
 type Formula struct {
@@ -46,6 +20,11 @@ type Formula struct {
 	Description string
 	Homepage    string
 	Artifacts   []Artifact
+}
+
+// New creates a new Client
+func New() *Client {
+	return &Client{}
 }
 
 // Artifact represents downloadable artifact information
@@ -57,9 +36,9 @@ type Artifact struct {
 }
 
 // Generate generates Homebrew Formula content
-func Generate(formula *Formula) (string, error) {
+func (c *Client) Generate(formula *Formula) (string, error) {
 	// Generate class name (e.g. gorocket -> Gorocket)
-	className := toClassName(formula.Name)
+	className := c.toClassName(formula.Name)
 
 	// Remove v prefix from version
 	version := strings.TrimPrefix(formula.Version, "v")
@@ -116,7 +95,7 @@ func Generate(formula *Formula) (string, error) {
 }
 
 // UpdateTapRepository updates Homebrew tap repository
-func UpdateTapRepository(client interface {
+func (c *Client) UpdateTapRepository(client interface {
 	UpdateFile(path, content, message string) error
 }, formula string, moduleName, version string) error {
 	formulaPath := fmt.Sprintf("Formula/%s.rb", moduleName)
@@ -126,17 +105,28 @@ func UpdateTapRepository(client interface {
 }
 
 // toClassName generates class name from module name
-func toClassName(moduleName string) string {
+func (c *Client) toClassName(moduleName string) string {
 	// Get the last part of the path
 	parts := strings.Split(moduleName, "/")
 	name := parts[len(parts)-1]
 
-	// Remove hyphens and underscores
-	name = strings.ReplaceAll(name, "-", "")
-	name = strings.ReplaceAll(name, "_", "")
+	// Split by hyphens and underscores, then capitalize each part
+	delimiters := []string{"-", "_"}
+	for _, delimiter := range delimiters {
+		if strings.Contains(name, delimiter) {
+			parts := strings.Split(name, delimiter)
+			for i, part := range parts {
+				if len(part) > 0 {
+					parts[i] = strings.ToUpper(part[:1]) + part[1:]
+				}
+			}
+			name = strings.Join(parts, "")
+			break
+		}
+	}
 
-	// Capitalize the first letter
-	if len(name) > 0 {
+	// If no delimiters found, just capitalize the first letter
+	if len(name) > 0 && !strings.Contains(name, "-") && !strings.Contains(name, "_") {
 		name = strings.ToUpper(name[:1]) + name[1:]
 	}
 

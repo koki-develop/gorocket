@@ -1,0 +1,31 @@
+# typed: strict
+# frozen_string_literal: true
+
+# {{.ClassName}} formula
+class {{.ClassName}} < Formula
+  version "{{.Version}}"
+
+  on_macos do
+    if Hardware::CPU.arm?
+      url "{{.MacOSARM64URL}}"
+      sha256 "{{.MacOSARM64SHA256}}"
+    else
+      url "{{.MacOSAMD64URL}}"
+      sha256 "{{.MacOSAMD64SHA256}}"
+    end
+  end
+
+  on_linux do
+    if Hardware::CPU.arm?
+      url "{{.LinuxARM64URL}}"
+      sha256 "{{.LinuxARM64SHA256}}"
+    else
+      url "{{.LinuxAMD64URL}}"
+      sha256 "{{.LinuxAMD64SHA256}}"
+    end
+  end
+
+  def install
+    bin.install "{{.ModuleName}}"
+  end
+end

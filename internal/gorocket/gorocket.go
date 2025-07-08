@@ -17,6 +17,7 @@ type GoRocket struct {
 	configPath string
 	git        *git.Client
 	github     *github.Client
+	formula    *formula.Client
 }
 
 // BuildOptions contains options for the build command
@@ -35,6 +36,7 @@ func New() *GoRocket {
 	return &GoRocket{
 		configPath: ".gorocket.yml",
 		git:        git.New(),
+		formula:    formula.New(),
 	}
 }
 
@@ -303,7 +305,7 @@ func (g *GoRocket) generateFormula(config *Config, buildInfo *BuildInfo, results
 		Artifacts: artifacts,
 	}
 
-	content, err := formula.Generate(f)
+	content, err := g.formula.Generate(f)
 	if err != nil {
 		return fmt.Errorf("failed to generate formula: %w", err)
 	}
@@ -349,7 +351,7 @@ func (g *GoRocket) updateTapRepository(repository string) error {
 	}
 
 	// Update tap repository
-	if err := formula.UpdateTapRepository(tapClient, string(content), moduleName, buildInfo.Version); err != nil {
+	if err := g.formula.UpdateTapRepository(tapClient, string(content), moduleName, buildInfo.Version); err != nil {
 		return fmt.Errorf("failed to update tap repository: %w", err)
 	}
 

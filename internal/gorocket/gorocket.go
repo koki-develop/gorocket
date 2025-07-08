@@ -144,7 +144,7 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 	}
 
 	// Initialize GitHub client
-	g.github = github.New(token, repo.Owner, repo.Name)
+	g.github = github.New(token)
 
 	// Get version tag
 	tag, err := g.git.GetHeadTag()
@@ -153,21 +153,25 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 	}
 
 	// Check existing release
-	release, err := g.github.GetReleaseByTag(tag)
+	release, err := g.github.GetReleaseByTag(github.GetReleaseByTagParams{
+		Owner: repo.Owner,
+		Repo:  repo.Name,
+		Tag:   tag,
+	})
 	if err == nil && release != nil {
 		fmt.Printf("Release %s already exists\n", tag)
 		return nil
 	}
 
 	// Create new release
-	release = &github.Release{
+	release, err = g.github.CreateRelease(github.CreateReleaseParams{
+		Owner: repo.Owner,
+		Repo:  repo.Name,
 		Tag:   tag,
 		Name:  tag,
-		Body:  fmt.Sprintf("Release %s", tag),
 		Draft: opts.Draft,
-	}
-
-	if err := g.github.CreateRelease(release); err != nil {
+	})
+	if err != nil {
 		return fmt.Errorf("failed to create release: %w", err)
 	}
 
@@ -191,7 +195,12 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 		}
 
 		fmt.Printf("Uploading %s...\n", asset.Name)
-		if err := g.github.UploadAsset(release.ID, asset); err != nil {
+		if err := g.github.UploadAsset(github.UploadAssetParams{
+			Owner:     repo.Owner,
+			Repo:      repo.Name,
+			ReleaseID: release.GetID(),
+			Asset:     asset,
+		}); err != nil {
 			return fmt.Errorf("failed to upload asset %s: %w", asset.Name, err)
 		}
 	}
@@ -281,7 +290,7 @@ func (g *GoRocket) generateFormula(config *Config, buildInfo *BuildInfo, results
 			return fmt.Errorf("failed to open file %s: %w", archivePath, err)
 		}
 		sha256, err := util.CalculateSHA256(file)
-		file.Close()
+		_ = file.Close()
 		if err != nil {
 			return fmt.Errorf("failed to calculate SHA256 for %s: %w", archivePath, err)
 		}
@@ -331,11 +340,6 @@ func (g *GoRocket) updateTapRepository(repository string) error {
 	}
 	tapOwner, tapRepo := parts[0], parts[1]
 
-	// Create GitHub client for tap repository
-	// Use current token (passed from ReleaseOptions)
-	token := os.Getenv("GITHUB_TOKEN")
-	tapClient := github.New(token, tapOwner, tapRepo)
-
 	// Get build info
 	buildInfo, err := g.getBuildInfo()
 	if err != nil {
@@ -354,7 +358,13 @@ func (g *GoRocket) updateTapRepository(repository string) error {
 	tapFormulaPath := fmt.Sprintf("Formula/%s.rb", moduleName)
 	tapCommitMessage := fmt.Sprintf("Update %s to %s", moduleName, buildInfo.Version)
 
-	if err := tapClient.UpdateFile(tapFormulaPath, string(content), tapCommitMessage); err != nil {
+	if err := g.github.UpdateFile(github.UpdateFileParams{
+		Owner:         tapOwner,
+		Repo:          tapRepo,
+		Path:          tapFormulaPath,
+		Content:       string(content),
+		CommitMessage: tapCommitMessage,
+	}); err != nil {
 		return fmt.Errorf("failed to update tap repository: %w", err)
 	}
 

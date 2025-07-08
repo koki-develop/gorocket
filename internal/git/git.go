@@ -13,6 +13,12 @@ var (
 	sshPattern   = regexp.MustCompile(`^git@github\.com:([^/]+)/([^/]+?)(?:\.git)?$`)
 )
 
+// Repository represents a GitHub repository
+type Repository struct {
+	Owner string
+	Name  string
+}
+
 // Client provides Git operations
 type Client struct{}
 
@@ -32,20 +38,24 @@ func (c *Client) GetHeadTag() (string, error) {
 }
 
 // GetRepository retrieves GitHub repository information
-func (c *Client) GetRepository() (owner, repo string, err error) {
+func (c *Client) GetRepository() (*Repository, error) {
 	// Prefer environment variable
 	if env := os.Getenv("GITHUB_REPOSITORY"); env != "" {
 		parts := strings.SplitN(env, "/", 2)
 		if len(parts) == 2 {
-			return parts[0], parts[1], nil
+			return &Repository{
+				Owner: parts[0],
+				Name:  parts[1],
+			}, nil
 		}
+		return nil, fmt.Errorf("invalid GITHUB_REPOSITORY format: %s (expected owner/repo)", env)
 	}
 
 	// Get from git remote
 	cmd := exec.Command("git", "remote", "get-url", "origin")
 	output, err := cmd.Output()
 	if err != nil {
-		return "", "", fmt.Errorf("failed to get git remote origin: %w", err)
+		return nil, fmt.Errorf("failed to get git remote origin: %w", err)
 	}
 
 	remoteURL := strings.TrimSpace(string(output))
@@ -59,8 +69,11 @@ func (c *Client) GetRepository() (owner, repo string, err error) {
 	}
 
 	if len(matches) != 3 {
-		return "", "", fmt.Errorf("invalid GitHub repository URL: %s", remoteURL)
+		return nil, fmt.Errorf("invalid GitHub repository URL: %s", remoteURL)
 	}
 
-	return matches[1], matches[2], nil
+	return &Repository{
+		Owner: matches[1],
+		Name:  matches[2],
+	}, nil
 }

@@ -53,6 +53,7 @@ go test ./internal/gorocket/... -v
 go test ./internal/git/... -v
 go test ./internal/github/... -v
 go test ./internal/formula/... -v
+go test ./internal/util/... -v
 
 # Run tests with coverage
 go test ./internal/gorocket -coverprofile=coverage.out
@@ -73,7 +74,8 @@ internal/
 ├── gorocket/      # Core application logic
 ├── git/           # Git operations
 ├── github/        # GitHub API client
-└── formula/       # Homebrew Formula generation
+├── formula/       # Homebrew Formula generation
+└── util/          # Utility functions
 ```
 
 ### Dependency Flow
@@ -100,7 +102,10 @@ internal/
 
 **Formula (`internal/formula/`)**
 - `formula.go`: Homebrew Formula generation
-- SHA256 calculation for archives
+
+**Utility (`internal/util/`)**
+- `hash.go`: SHA256 calculation for archives and files
+- `hash_test.go`: Test cases using testify framework
 
 ### Command Pattern
 Each CLI command follows this simplified pattern:
@@ -153,6 +158,7 @@ The tool uses `.gorocket.yml` for configuration:
 
 - **goimports** for formatting (`task format`)
 - **golangci-lint** for static analysis (`task lint`)
+- **testify** for test assertions and better test readability
 - Direct implementations without excessive abstractions
 - Comments in English
 
@@ -177,3 +183,46 @@ The project uses go-task for common development workflows:
 
 - `GITHUB_TOKEN`: Required for release command
 - `GITHUB_REPOSITORY`: Optional, overrides git remote detection
+
+## Testing Framework
+
+The project uses testify for test assertions:
+- `github.com/stretchr/testify/assert` for assertions
+- Table-driven test pattern for comprehensive coverage
+- Test files follow `*_test.go` naming convention
+
+Example test pattern:
+```go
+func Test_CalculateSHA256(t *testing.T) {
+    tests := []struct {
+        name     string
+        input    string
+        expected string
+    }{
+        // test cases...
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            reader := strings.NewReader(tt.input)
+            result, err := CalculateSHA256(reader)
+            assert.NoError(t, err)
+            assert.Equal(t, tt.expected, result)
+        })
+    }
+}
+```
+
+## Development Environment
+
+The project uses `mise` for tool version management:
+- Go 1.24.3
+- golangci-lint 2.1.6
+- goreleaser 2.9.0
+- goimports 0.34.0
+
+CI/CD is handled by GitHub Actions with automated testing, building, and linting.
+
+## Architecture Documentation
+
+For detailed architecture design, refer to `ARCHITECTURE.md` (written in Japanese) which contains comprehensive design principles, package structure, and data flow documentation.

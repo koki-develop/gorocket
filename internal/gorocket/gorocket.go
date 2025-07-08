@@ -141,7 +141,7 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 	}
 
 	// Initialize GitHub client
-	g.github = github.NewClient(token, owner, repo)
+	g.github = github.New(token, owner, repo)
 
 	// Get version tag
 	tag, err := g.git.GetHeadTag()
@@ -326,7 +326,7 @@ func (g *GoRocket) updateTapRepository(repository string) error {
 	// Create GitHub client for tap repository
 	// Use current token (passed from ReleaseOptions)
 	token := os.Getenv("GITHUB_TOKEN")
-	tapClient := github.NewClient(token, tapOwner, tapRepo)
+	tapClient := github.New(token, tapOwner, tapRepo)
 
 	// Get build info
 	buildInfo, err := g.getBuildInfo()

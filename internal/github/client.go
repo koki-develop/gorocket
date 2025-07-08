@@ -32,8 +32,8 @@ type Asset struct {
 	Path string
 }
 
-// NewClient creates a new GitHub client
-func NewClient(token, owner, repo string) *Client {
+// New creates a new GitHub client
+func New(token, owner, repo string) *Client {
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
 	tc := oauth2.NewClient(ctx, ts)

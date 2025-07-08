@@ -86,10 +86,12 @@ internal/
 
 ### Key Components
 
-**Core (`internal/gorocket/`)**
-- `gorocket.go`: Main application logic, orchestrates all operations
+**Core (`internal/gorocket/`)** - Split into responsibility-focused structs:
+- `initer.go`: `Initer` struct handles configuration initialization
+- `builder.go`: `Builder` struct handles cross-platform builds and Formula generation
+- `releaser.go`: `Releaser` struct handles GitHub releases and asset uploads
+- `version.go`: Version information management
 - `config.go`: Configuration management with Go template support
-- `build.go`: Cross-platform build logic
 - `archive.go`: Archive creation (tar.gz/zip)
 
 **Git (`internal/git/`)**
@@ -109,16 +111,17 @@ internal/
 - `hash_test.go`: Test cases using testify framework
 
 ### Command Pattern
-Each CLI command follows this simplified pattern:
+Each CLI command directly instantiates the required struct:
 ```go
-func newBuildCommand(app *gorocket.GoRocket) *cobra.Command {
+func newBuildCommand() *cobra.Command {
     var clean bool
     
     cmd := &cobra.Command{
         Use:   "build",
         Short: "Build binaries for multiple platforms",
         RunE: func(cmd *cobra.Command, args []string) error {
-            return app.Build(gorocket.BuildOptions{
+            builder := gorocket.NewBuilder(".gorocket.yml")
+            return builder.Build(gorocket.BuildOptions{
                 Clean: clean,
             })
         },
@@ -129,6 +132,29 @@ func newBuildCommand(app *gorocket.GoRocket) *cobra.Command {
 }
 ```
 
+For the release command, token validation happens during initialization:
+```go
+func newReleaseCommand() *cobra.Command {
+    var token string
+    var draft bool
+    
+    cmd := &cobra.Command{
+        Use:   "release",
+        Short: "Create a GitHub release with built artifacts",
+        RunE: func(cmd *cobra.Command, args []string) error {
+            releaser, err := gorocket.NewReleaser(".gorocket.yml", token)
+            if err != nil {
+                return err
+            }
+            return releaser.Release(gorocket.ReleaseOptions{
+                Draft: draft,
+            })
+        },
+    }
+    // ...
+}
+```
+
 ## Configuration
 
 The tool uses `.gorocket.yml` for configuration:
@@ -136,6 +162,7 @@ The tool uses `.gorocket.yml` for configuration:
 - `build.ldflags`: Optional linker flags
 - `brew.repository`: Optional Homebrew tap repository (owner/name)
 - Supports Go templates for dynamic values: `{{.Version}}`, `{{.Module}}`
+- Config loading accepts `map[string]any` for template data
 
 ## Build Process Requirements
 
@@ -174,12 +201,12 @@ The project uses go-task for common development workflows:
 ## Release Workflow
 
 1. Create a git tag: `git tag v1.0.0`
-2. Run release command: `gorocket release`
+2. Run release command: `gorocket release` or `gorocket release --token <GITHUB_TOKEN>`
 3. This will:
    - Build all configured targets
    - Create GitHub release
    - Upload artifacts
-   - Update Homebrew tap (if configured) using the same GitHub client instance
+   - Update Homebrew tap (if configured)
 
 ## Environment Variables
 

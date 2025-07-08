@@ -95,7 +95,7 @@ func (c *Client) UploadAsset(releaseID int64, asset Asset) error {
 	if err != nil {
 		return fmt.Errorf("failed to open asset file %s: %w", asset.Path, err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	uploadOptions := &github.UploadOptions{
 		Name: asset.Name,

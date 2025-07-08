@@ -57,33 +57,13 @@ func buildBinary(module, version string, target Target, ldflags string) (*BuildR
 	}, nil
 }
 
-// executeGoBuild executes go build command (for compatibility)
-func executeGoBuild(env map[string]string, args []string) error {
-	cmd := exec.Command("go", args...)
-
-	// Set environment variables
-	cmd.Env = os.Environ()
-	for k, v := range env {
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", k, v))
-	}
-
-	var stderr strings.Builder
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("go build failed: %w\nstderr: %s", err, stderr.String())
-	}
-
-	return nil
-}
-
 // getModuleName retrieves module name from go.mod
 func getModuleName() (string, error) {
 	file, err := os.Open("go.mod")
 	if err != nil {
 		return "", fmt.Errorf("failed to open go.mod: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {

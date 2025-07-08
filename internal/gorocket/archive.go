@@ -37,22 +37,22 @@ func createTarGz(src, archiveName, moduleName, version, osName, arch string) (st
 	if err != nil {
 		return "", fmt.Errorf("failed to create archive file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// gzip writer
 	gzipWriter := gzip.NewWriter(file)
-	defer gzipWriter.Close()
+	defer func() { _ = gzipWriter.Close() }()
 
 	// tar writer
 	tarWriter := tar.NewWriter(gzipWriter)
-	defer tarWriter.Close()
+	defer func() { _ = tarWriter.Close() }()
 
 	// Open source file
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return "", fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer srcFile.Close()
+	defer func() { _ = srcFile.Close() }()
 
 	// Get file info
 	srcInfo, err := srcFile.Stat()
@@ -93,18 +93,18 @@ func createZip(src, archiveName, moduleName, version, osName, arch string) (stri
 	if err != nil {
 		return "", fmt.Errorf("failed to create archive file: %w", err)
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	// zip writer
 	zipWriter := zip.NewWriter(file)
-	defer zipWriter.Close()
+	defer func() { _ = zipWriter.Close() }()
 
 	// Open source file
 	srcFile, err := os.Open(src)
 	if err != nil {
 		return "", fmt.Errorf("failed to open source file: %w", err)
 	}
-	defer srcFile.Close()
+	defer func() { _ = srcFile.Close() }()
 
 	// Directory structure in archive
 	dirName := fmt.Sprintf("%s_%s_%s_%s", moduleName, version, osName, arch)

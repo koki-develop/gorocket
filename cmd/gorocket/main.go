@@ -8,8 +8,6 @@ import (
 )
 
 func Main() {
-	app := gorocket.New()
-
 	rootCmd := &cobra.Command{
 		Use:   "gorocket",
 		Short: "Cross-platform Go binary builder",
@@ -17,10 +15,10 @@ func Main() {
 
 	// Command definitions
 	rootCmd.AddCommand(
-		newInitCommand(app),
-		newBuildCommand(app),
-		newReleaseCommand(app),
-		newVersionCommand(app),
+		newInitCommand(),
+		newBuildCommand(),
+		newReleaseCommand(),
+		newVersionCommand(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
@@ -28,25 +26,27 @@ func Main() {
 	}
 }
 
-func newInitCommand(app *gorocket.GoRocket) *cobra.Command {
+func newInitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "init",
 		Short: "Create a default .gorocket.yml configuration file",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Init()
+			initer := gorocket.NewIniter(".gorocket.yml")
+			return initer.Init()
 		},
 	}
 	return cmd
 }
 
-func newBuildCommand(app *gorocket.GoRocket) *cobra.Command {
+func newBuildCommand() *cobra.Command {
 	var clean bool
 
 	cmd := &cobra.Command{
 		Use:   "build",
 		Short: "Build binaries for multiple platforms",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Build(gorocket.BuildOptions{
+			builder := gorocket.NewBuilder(".gorocket.yml")
+			return builder.Build(gorocket.BuildOptions{
 				Clean: clean,
 			})
 		},
@@ -57,7 +57,7 @@ func newBuildCommand(app *gorocket.GoRocket) *cobra.Command {
 	return cmd
 }
 
-func newReleaseCommand(app *gorocket.GoRocket) *cobra.Command {
+func newReleaseCommand() *cobra.Command {
 	var token string
 	var draft bool
 
@@ -65,8 +65,11 @@ func newReleaseCommand(app *gorocket.GoRocket) *cobra.Command {
 		Use:   "release",
 		Short: "Create a GitHub release with built artifacts",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return app.Release(gorocket.ReleaseOptions{
-				Token: token,
+			releaser, err := gorocket.NewReleaser(".gorocket.yml", token)
+			if err != nil {
+				return err
+			}
+			return releaser.Release(gorocket.ReleaseOptions{
 				Draft: draft,
 			})
 		},
@@ -78,12 +81,12 @@ func newReleaseCommand(app *gorocket.GoRocket) *cobra.Command {
 	return cmd
 }
 
-func newVersionCommand(app *gorocket.GoRocket) *cobra.Command {
+func newVersionCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "version",
 		Short: "Display version information",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			version, err := app.Version()
+			version, err := gorocket.GetVersion()
 			if err != nil {
 				return err
 			}

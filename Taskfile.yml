@@ -8,7 +8,7 @@ tasks:
     cmds:
       - go build -o gorocket .
       - echo "Binary built successfully - gorocket"
-  
+
   # Testing tasks
   test:
     desc: Run all tests
@@ -20,19 +20,19 @@ tasks:
       - go test -coverprofile=coverage.out ./...
       - go tool cover -html=coverage.out -o coverage.html
       - echo "Coverage report generated at coverage.html"
-  
+
   # Mock management
   mocks:
     desc: Generate mocks for testing
     cmds:
       - mockery
-  
+
   # Code quality
   format:
     desc: Format Go code with goimports
     cmds:
       - goimports -w .
-  
+
   lint:
     desc: Run golangci-lint
     cmds:

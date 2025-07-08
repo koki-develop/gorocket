@@ -98,7 +98,8 @@ internal/
 
 **GitHub (`internal/github/`)**
 - `client.go`: GitHub API operations using go-github v66
-- Release creation and asset upload
+- Uses parameter structs for all methods (GetReleaseByTagParams, CreateReleaseParams, UploadAssetParams, UpdateFileParams)
+- Release creation and asset upload with owner/repo per-method specification
 
 **Formula (`internal/formula/`)**
 - `formula.go`: Homebrew Formula generation
@@ -168,6 +169,7 @@ The project uses go-task for common development workflows:
 - Prefer `task <command>` over direct go commands
 - Use `task --list` to see all available tasks
 - Essential tasks: `build`, `test`, `test-coverage`, `format`, `lint`
+- Additional tasks: `mocks` (generate test mocks), `formula-lint` (validate Homebrew formulas)
 
 ## Release Workflow
 
@@ -177,7 +179,7 @@ The project uses go-task for common development workflows:
    - Build all configured targets
    - Create GitHub release
    - Upload artifacts
-   - Update Homebrew tap (if configured)
+   - Update Homebrew tap (if configured) using the same GitHub client instance
 
 ## Environment Variables
 

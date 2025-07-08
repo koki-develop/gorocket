@@ -1,7 +1,7 @@
 package main
 
-import "github.com/koki-develop/gorocket/cmd"
+import "github.com/koki-develop/gorocket/cmd/gorocket"
 
 func main() {
-	cmd.Execute()
+	gorocket.Main()
 }

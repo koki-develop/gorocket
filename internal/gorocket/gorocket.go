@@ -135,13 +135,13 @@ func (g *GoRocket) Release(opts ReleaseOptions) error {
 	}
 
 	// Get repository info
-	owner, repo, err := g.git.GetRepository()
+	repo, err := g.git.GetRepository()
 	if err != nil {
 		return fmt.Errorf("failed to get repository info: %w", err)
 	}
 
 	// Initialize GitHub client
-	g.github = github.New(token, owner, repo)
+	g.github = github.New(token, repo.Owner, repo.Name)
 
 	// Get version tag
 	tag, err := g.git.GetHeadTag()
@@ -255,7 +255,7 @@ func (g *GoRocket) generateFormula(config *Config, buildInfo *BuildInfo, results
 	fmt.Println("Generating Homebrew Formula...")
 
 	// Get repository info
-	owner, repo, err := g.git.GetRepository()
+	repo, err := g.git.GetRepository()
 	if err != nil {
 		return fmt.Errorf("failed to get repository info: %w", err)
 	}
@@ -280,7 +280,7 @@ func (g *GoRocket) generateFormula(config *Config, buildInfo *BuildInfo, results
 
 		// Build URL
 		url := fmt.Sprintf("https://github.com/%s/%s/releases/download/%s/%s",
-			owner, repo, result.Version, archiveName)
+			repo.Owner, repo.Name, result.Version, archiveName)
 
 		artifacts = append(artifacts, formula.Artifact{
 			OS:     result.OS,

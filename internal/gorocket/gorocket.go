@@ -351,7 +351,10 @@ func (g *GoRocket) updateTapRepository(repository string) error {
 	}
 
 	// Update tap repository
-	if err := g.formula.UpdateTapRepository(tapClient, string(content), moduleName, buildInfo.Version); err != nil {
+	tapFormulaPath := fmt.Sprintf("Formula/%s.rb", moduleName)
+	tapCommitMessage := fmt.Sprintf("Update %s to %s", moduleName, buildInfo.Version)
+
+	if err := tapClient.UpdateFile(tapFormulaPath, string(content), tapCommitMessage); err != nil {
 		return fmt.Errorf("failed to update tap repository: %w", err)
 	}
 

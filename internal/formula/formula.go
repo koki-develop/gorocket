@@ -94,16 +94,6 @@ func (c *Client) Generate(formula *Formula) (string, error) {
 	return buf.String(), nil
 }
 
-// UpdateTapRepository updates Homebrew tap repository
-func (c *Client) UpdateTapRepository(client interface {
-	UpdateFile(path, content, message string) error
-}, formula string, moduleName, version string) error {
-	formulaPath := fmt.Sprintf("Formula/%s.rb", moduleName)
-	commitMessage := fmt.Sprintf("Update %s to %s", moduleName, version)
-
-	return client.UpdateFile(formulaPath, formula, commitMessage)
-}
-
 // toClassName generates class name from module name
 func (c *Client) toClassName(moduleName string) string {
 	// Get the last part of the path

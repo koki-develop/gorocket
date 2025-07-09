@@ -30,10 +30,16 @@ type BuildInfo struct {
 
 // BuildResult represents a build result
 type BuildResult struct {
-	Binary  string
-	OS      string
-	Arch    string
 	Version string
+	Outputs []*BuildOutput
+}
+
+// BuildOutput represents a single build output
+type BuildOutput struct {
+	OS          string
+	Arch        string
+	BinaryPath  string
+	ArchivePath string
 }
 
 // Builder provides build functionality
@@ -98,34 +104,39 @@ func (b *Builder) Build(params BuildParams) error {
 	}
 
 	// Build each target
-	var results []*BuildResult
+	var outputs []*BuildOutput
 	for _, target := range config.Build.Targets {
 		fmt.Printf("Building %s/%s...\n", target.OS, target.Arch)
 
-		result, err := buildBinary(buildInfo.Module, buildInfo.Version, target, config.Build.Ldflags)
+		output, err := buildBinary(buildInfo.Module, buildInfo.Version, target, config.Build.Ldflags)
 		if err != nil {
 			return fmt.Errorf("failed to build %s/%s: %w", target.OS, target.Arch, err)
 		}
 
 		// Create archive
-		archivePath, err := b.createArchive(result)
+		archivePath, err := b.createArchive(output)
 		if err != nil {
 			return fmt.Errorf("failed to create archive: %w", err)
 		}
 
+		output.ArchivePath = archivePath
 		fmt.Printf("Created %s\n", archivePath)
 
 		// Remove binary file
-		if err := os.Remove(result.Binary); err != nil {
+		if err := os.Remove(output.BinaryPath); err != nil {
 			return fmt.Errorf("failed to remove binary: %w", err)
 		}
 
-		results = append(results, result)
+		outputs = append(outputs, output)
 	}
 
 	// Generate Homebrew Formula if configured
 	if config.Brew.Repository != "" {
-		if err := b.generateFormula(config, buildInfo, results); err != nil {
+		result := &BuildResult{
+			Version: buildInfo.Version,
+			Outputs: outputs,
+		}
+		if err := b.generateFormula(config, buildInfo, result); err != nil {
 			return fmt.Errorf("failed to generate formula: %w", err)
 		}
 	}
@@ -152,7 +163,7 @@ func (b *Builder) getBuildInfo() (*BuildInfo, error) {
 }
 
 // generateFormula generates Homebrew Formula
-func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, results []*BuildResult) error {
+func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, result *BuildResult) error {
 	fmt.Println("Generating Homebrew Formula...")
 
 	// Get repository info
@@ -163,13 +174,13 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, results 
 
 	// Create artifact information
 	var artifacts []formula.Artifact
-	for _, result := range results {
+	for _, output := range result.Outputs {
 		// Determine archive name
 		var archiveName string
-		if result.OS == "windows" {
-			archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", filepath.Base(buildInfo.Module), result.Version, result.OS, result.Arch)
+		if output.OS == "windows" {
+			archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", filepath.Base(buildInfo.Module), result.Version, output.OS, output.Arch)
 		} else {
-			archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", filepath.Base(buildInfo.Module), result.Version, result.OS, result.Arch)
+			archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", filepath.Base(buildInfo.Module), result.Version, output.OS, output.Arch)
 		}
 		archivePath := filepath.Join("dist", archiveName)
 
@@ -189,8 +200,8 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, results 
 			repo.Owner, repo.Name, result.Version, archiveName)
 
 		artifacts = append(artifacts, formula.Artifact{
-			OS:     result.OS,
-			Arch:   result.Arch,
+			OS:     output.OS,
+			Arch:   output.Arch,
 			URL:    url,
 			SHA256: sha256,
 		})
@@ -219,7 +230,7 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, results 
 }
 
 // buildBinary builds a single binary
-func buildBinary(module, version string, target Target, ldflags string) (*BuildResult, error) {
+func buildBinary(module, version string, target Target, ldflags string) (*BuildOutput, error) {
 	// Determine output file name
 	binaryName := filepath.Base(module)
 	if target.OS == "windows" {
@@ -250,11 +261,10 @@ func buildBinary(module, version string, target Target, ldflags string) (*BuildR
 		return nil, fmt.Errorf("go build failed: %w\nstderr: %s", err, stderr.String())
 	}
 
-	return &BuildResult{
-		Binary:  binaryPath,
-		OS:      target.OS,
-		Arch:    target.Arch,
-		Version: version,
+	return &BuildOutput{
+		OS:         target.OS,
+		Arch:       target.Arch,
+		BinaryPath: binaryPath,
 	}, nil
 }
 
@@ -282,20 +292,26 @@ func getModuleName() (string, error) {
 	return "", fmt.Errorf("module name not found in go.mod")
 }
 
-// createArchive creates an archive from build result
-func (b *Builder) createArchive(result *BuildResult) (string, error) {
+// createArchive creates an archive from build output
+func (b *Builder) createArchive(output *BuildOutput) (string, error) {
 	// Extract module name from binary path
-	binaryName := filepath.Base(result.Binary)
+	binaryName := filepath.Base(output.BinaryPath)
 	moduleName := strings.TrimSuffix(binaryName, filepath.Ext(binaryName))
+
+	// Get version from git
+	version, err := b.git.GetHeadTag()
+	if err != nil {
+		return "", fmt.Errorf("failed to get version: %w", err)
+	}
 
 	// Determine archive name
 	var archiveName string
-	if result.OS == "windows" {
-		archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", moduleName, result.Version, result.OS, result.Arch)
-		return b.createZip(result.Binary, archiveName, moduleName, result.Version, result.OS, result.Arch)
+	if output.OS == "windows" {
+		archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", moduleName, version, output.OS, output.Arch)
+		return b.createZip(output.BinaryPath, archiveName, moduleName, version, output.OS, output.Arch)
 	} else {
-		archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", moduleName, result.Version, result.OS, result.Arch)
-		return b.createTarGz(result.Binary, archiveName, moduleName, result.Version, result.OS, result.Arch)
+		archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", moduleName, version, output.OS, output.Arch)
+		return b.createTarGz(output.BinaryPath, archiveName, moduleName, version, output.OS, output.Arch)
 	}
 }
 

@@ -108,7 +108,7 @@ func (b *Builder) Build(params BuildParams) error {
 	for _, target := range config.Build.Targets {
 		fmt.Printf("Building %s/%s...\n", target.OS, target.Arch)
 
-		output, err := b.buildBinary(buildInfo.Module, buildInfo.Version, target, config.Build.Ldflags)
+		output, err := b.buildBinary(buildInfo.Module, target, config.Build.Ldflags)
 		if err != nil {
 			return fmt.Errorf("failed to build %s/%s: %w", target.OS, target.Arch, err)
 		}
@@ -136,7 +136,7 @@ func (b *Builder) Build(params BuildParams) error {
 			Version: buildInfo.Version,
 			Outputs: outputs,
 		}
-		if err := b.generateFormula(config, buildInfo, result); err != nil {
+		if err := b.generateFormula(buildInfo, result); err != nil {
 			return fmt.Errorf("failed to generate formula: %w", err)
 		}
 	}
@@ -163,7 +163,7 @@ func (b *Builder) getBuildInfo() (*BuildInfo, error) {
 }
 
 // generateFormula generates Homebrew Formula
-func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, result *BuildResult) error {
+func (b *Builder) generateFormula(buildInfo *BuildInfo, result *BuildResult) error {
 	fmt.Println("Generating Homebrew Formula...")
 
 	// Get repository info
@@ -230,7 +230,7 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, result *
 }
 
 // buildBinary builds a single binary
-func (b *Builder) buildBinary(module, version string, target Target, ldflags string) (*BuildOutput, error) {
+func (b *Builder) buildBinary(module string, target Target, ldflags string) (*BuildOutput, error) {
 	// Determine output file name
 	binaryName := filepath.Base(module)
 	if target.OS == "windows" {

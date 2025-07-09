@@ -71,12 +71,28 @@ func (b *Builder) Build(opts BuildOptions) error {
 
 	// Prepare dist directory
 	distDir := "dist"
-	if opts.Clean {
-		if err := os.RemoveAll(distDir); err != nil {
-			return fmt.Errorf("failed to clean dist directory: %w", err)
+
+	// Check if dist directory exists and is not empty
+	if info, err := os.Stat(distDir); err == nil && info.IsDir() {
+		// Directory exists, check if it's empty
+		entries, err := os.ReadDir(distDir)
+		if err != nil {
+			return fmt.Errorf("failed to read dist directory: %w", err)
+		}
+
+		// If directory is not empty
+		if len(entries) > 0 {
+			if !opts.Clean {
+				return fmt.Errorf("dist directory is not empty (use --clean to remove it)")
+			}
+			// Clean flag is true, remove the directory
+			if err := os.RemoveAll(distDir); err != nil {
+				return fmt.Errorf("failed to clean dist directory: %w", err)
+			}
 		}
 	}
 
+	// Create dist directory if it doesn't exist
 	if err := os.MkdirAll(distDir, 0755); err != nil {
 		return fmt.Errorf("failed to create dist directory: %w", err)
 	}

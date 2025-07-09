@@ -71,6 +71,7 @@ The codebase follows a simplified architecture with direct implementations:
 ```
 cmd/gorocket/      # CLI entry point
 internal/
+├── config/        # Configuration management
 ├── gorocket/      # Core application logic
 ├── git/           # Git operations
 ├── github/        # GitHub API client
@@ -80,18 +81,22 @@ internal/
 
 ### Dependency Flow
 - **CLI** (`cmd/gorocket/`) → **Core** (`internal/gorocket/`)
-- **Core** → **External** (`git/`, `github/`, `formula/`)
+- **Core** → **Config** (`internal/config/`) + **External** (`git/`, `github/`, `formula/`)
 - Minimal abstractions - direct implementation preferred
 - External dependencies only where necessary
 
 ### Key Components
+
+**Config (`internal/config/`)**
+- `config.go`: Configuration file management with Go template support
+- Contains `Config` and `Target` structs, `LoadConfig` function
 
 **Core (`internal/gorocket/`)** - Split into responsibility-focused structs:
 - `initer.go`: `Initer` struct handles configuration initialization
 - `builder.go`: `Builder` struct handles cross-platform builds and Formula generation
 - `releaser.go`: `Releaser` struct handles GitHub releases and asset uploads
 - `version.go`: Version information management
-- `config.go`: Configuration management with Go template support
+- `config.go`: Contains embedded default configuration YAML
 - `archive.go`: Archive creation (tar.gz/zip)
 
 **Git (`internal/git/`)**
@@ -163,6 +168,8 @@ The tool uses `.gorocket.yml` for configuration:
 - `brew.repository`: Optional Homebrew tap repository (owner/name)
 - Supports Go templates for dynamic values: `{{.Version}}`, `{{.Module}}`
 - Config loading accepts `map[string]any` for template data
+- Configuration management is handled by `internal/config` package
+- Default configuration YAML is embedded in `internal/gorocket/config.go`
 
 ## Build Process Requirements
 

@@ -108,7 +108,7 @@ func (b *Builder) Build(params BuildParams) error {
 	for _, target := range config.Build.Targets {
 		fmt.Printf("Building %s/%s...\n", target.OS, target.Arch)
 
-		output, err := buildBinary(buildInfo.Module, buildInfo.Version, target, config.Build.Ldflags)
+		output, err := b.buildBinary(buildInfo.Module, buildInfo.Version, target, config.Build.Ldflags)
 		if err != nil {
 			return fmt.Errorf("failed to build %s/%s: %w", target.OS, target.Arch, err)
 		}
@@ -230,7 +230,7 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, result *
 }
 
 // buildBinary builds a single binary
-func buildBinary(module, version string, target Target, ldflags string) (*BuildOutput, error) {
+func (b *Builder) buildBinary(module, version string, target Target, ldflags string) (*BuildOutput, error) {
 	// Determine output file name
 	binaryName := filepath.Base(module)
 	if target.OS == "windows" {

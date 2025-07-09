@@ -121,7 +121,7 @@ func newBuildCommand() *cobra.Command {
         Short: "Build binaries for multiple platforms",
         RunE: func(cmd *cobra.Command, args []string) error {
             builder := gorocket.NewBuilder(".gorocket.yml")
-            return builder.Build(gorocket.BuildOptions{
+            return builder.Build(gorocket.BuildParams{
                 Clean: clean,
             })
         },

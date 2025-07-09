@@ -46,7 +46,7 @@ func newBuildCommand() *cobra.Command {
 		Short: "Build binaries for multiple platforms",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			builder := gorocket.NewBuilder(".gorocket.yml")
-			return builder.Build(gorocket.BuildOptions{
+			return builder.Build(gorocket.BuildParams{
 				Clean: clean,
 			})
 		},
@@ -69,7 +69,7 @@ func newReleaseCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return releaser.Release(gorocket.ReleaseOptions{
+			return releaser.Release(gorocket.ReleaseParams{
 				Draft: draft,
 			})
 		},

@@ -17,8 +17,8 @@ import (
 	"github.com/koki-develop/gorocket/internal/util"
 )
 
-// BuildOptions contains options for the build command
-type BuildOptions struct {
+// BuildParams contains options for the build command
+type BuildParams struct {
 	Clean bool
 }
 
@@ -53,7 +53,7 @@ func NewBuilder(configPath string) *Builder {
 }
 
 // Build executes cross-platform builds
-func (b *Builder) Build(opts BuildOptions) error {
+func (b *Builder) Build(params BuildParams) error {
 	// Get build info
 	buildInfo, err := b.getBuildInfo()
 	if err != nil {
@@ -82,7 +82,7 @@ func (b *Builder) Build(opts BuildOptions) error {
 
 		// If directory is not empty
 		if len(entries) > 0 {
-			if !opts.Clean {
+			if !params.Clean {
 				return fmt.Errorf("dist directory is not empty (use --clean to remove it)")
 			}
 			// Clean flag is true, remove the directory

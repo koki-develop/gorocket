@@ -10,8 +10,8 @@ import (
 	"github.com/koki-develop/gorocket/internal/github"
 )
 
-// ReleaseOptions contains options for the release command
-type ReleaseOptions struct {
+// ReleaseParams contains options for the release command
+type ReleaseParams struct {
 	Draft bool
 }
 
@@ -41,9 +41,9 @@ func NewReleaser(configPath string, token string) (*Releaser, error) {
 }
 
 // Release creates a GitHub release
-func (r *Releaser) Release(opts ReleaseOptions) error {
+func (r *Releaser) Release(params ReleaseParams) error {
 	// First build the binaries
-	if err := r.builder.Build(BuildOptions{Clean: false}); err != nil {
+	if err := r.builder.Build(BuildParams{Clean: false}); err != nil {
 		return fmt.Errorf("failed to build: %w", err)
 	}
 
@@ -76,7 +76,7 @@ func (r *Releaser) Release(opts ReleaseOptions) error {
 		Repo:  repo.Name,
 		Tag:   tag,
 		Name:  tag,
-		Draft: opts.Draft,
+		Draft: params.Draft,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create release: %w", err)

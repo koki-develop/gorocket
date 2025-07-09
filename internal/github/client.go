@@ -107,11 +107,8 @@ func (c *Client) UploadAsset(params UploadAssetParams) error {
 	}
 	defer func() { _ = file.Close() }()
 
-	uploadOptions := &github.UploadOptions{
-		Name: params.Asset.Name,
-	}
-
-	_, _, err = c.client.Repositories.UploadReleaseAsset(ctx, params.Owner, params.Repo, params.ReleaseID, uploadOptions, file)
+	opts := &github.UploadOptions{Name: params.Asset.Name}
+	_, _, err = c.client.Repositories.UploadReleaseAsset(ctx, params.Owner, params.Repo, params.ReleaseID, opts, file)
 	if err != nil {
 		return fmt.Errorf("failed to upload asset %s: %w", params.Asset.Name, err)
 	}
@@ -139,7 +136,6 @@ func (c *Client) UpdateFile(params UpdateFileParams) error {
 		Content: []byte(params.Content),
 		SHA:     sha,
 	}
-
 	_, _, err = c.client.Repositories.CreateFile(ctx, params.Owner, params.Repo, params.Path, opts)
 	if err != nil {
 		return fmt.Errorf("failed to update file: %w", err)

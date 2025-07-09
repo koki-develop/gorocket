@@ -25,7 +25,7 @@ func (i *Initer) Init() error {
 	}
 
 	// Create default config file
-	if err := SaveDefaultConfig(i.configPath); err != nil {
+	if err := os.WriteFile(i.configPath, DefaultConfig, 0644); err != nil {
 		return fmt.Errorf("failed to save default config: %w", err)
 	}
 

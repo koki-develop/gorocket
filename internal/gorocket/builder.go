@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/koki-develop/gorocket/internal/config"
 	"github.com/koki-develop/gorocket/internal/formula"
 	"github.com/koki-develop/gorocket/internal/git"
 	"github.com/koki-develop/gorocket/internal/util"
@@ -67,7 +68,7 @@ func (b *Builder) Build(params BuildParams) error {
 	}
 
 	// Load config file
-	config, err := LoadConfig(b.configPath, map[string]any{
+	cfg, err := config.LoadConfig(b.configPath, map[string]any{
 		"Version": buildInfo.Version,
 		"Module":  buildInfo.Module,
 	})
@@ -105,10 +106,10 @@ func (b *Builder) Build(params BuildParams) error {
 
 	// Build each target
 	var outputs []*BuildOutput
-	for _, target := range config.Build.Targets {
+	for _, target := range cfg.Build.Targets {
 		fmt.Printf("Building %s/%s...\n", target.OS, target.Arch)
 
-		output, err := b.buildBinary(buildInfo.Module, target, config.Build.Ldflags)
+		output, err := b.buildBinary(buildInfo.Module, target, cfg.Build.Ldflags)
 		if err != nil {
 			return fmt.Errorf("failed to build %s/%s: %w", target.OS, target.Arch, err)
 		}
@@ -131,7 +132,7 @@ func (b *Builder) Build(params BuildParams) error {
 	}
 
 	// Generate Homebrew Formula if configured
-	if config.Brew.Repository != "" {
+	if cfg.Brew.Repository != "" {
 		result := &BuildResult{
 			Version: buildInfo.Version,
 			Outputs: outputs,
@@ -230,7 +231,7 @@ func (b *Builder) generateFormula(buildInfo *BuildInfo, result *BuildResult) err
 }
 
 // buildBinary builds a single binary
-func (b *Builder) buildBinary(module string, target Target, ldflags string) (*BuildOutput, error) {
+func (b *Builder) buildBinary(module string, target config.Target, ldflags string) (*BuildOutput, error) {
 	// Determine output file name
 	binaryName := filepath.Base(module)
 	if target.OS == "windows" {

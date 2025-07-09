@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/koki-develop/gorocket/internal/config"
 	"github.com/koki-develop/gorocket/internal/git"
 	"github.com/koki-develop/gorocket/internal/github"
 )
@@ -113,13 +114,13 @@ func (r *Releaser) Release(params ReleaseParams) error {
 	}
 
 	// Update Homebrew tap repository if configured
-	config, err := LoadConfig(r.configPath, nil)
+	cfg, err := config.LoadConfig(r.configPath, nil)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if config.Brew.Repository != "" {
-		if err := r.updateTapRepository(config.Brew.Repository); err != nil {
+	if cfg.Brew.Repository != "" {
+		if err := r.updateTapRepository(cfg.Brew.Repository); err != nil {
 			return fmt.Errorf("failed to update tap repository: %w", err)
 		}
 	}

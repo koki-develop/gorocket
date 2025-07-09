@@ -167,9 +167,9 @@ func (b *Builder) generateFormula(config *Config, buildInfo *BuildInfo, results 
 		// Determine archive name
 		var archiveName string
 		if result.OS == "windows" {
-			archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", buildInfo.Module, result.Version, result.OS, result.Arch)
+			archiveName = fmt.Sprintf("%s_%s_%s_%s.zip", filepath.Base(buildInfo.Module), result.Version, result.OS, result.Arch)
 		} else {
-			archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", buildInfo.Module, result.Version, result.OS, result.Arch)
+			archiveName = fmt.Sprintf("%s_%s_%s_%s.tar.gz", filepath.Base(buildInfo.Module), result.Version, result.OS, result.Arch)
 		}
 		archivePath := filepath.Join("dist", archiveName)
 

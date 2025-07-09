@@ -186,6 +186,8 @@ The tool uses `.gorocket.yml` for configuration:
 
 - **goimports** for formatting (`task format`)
 - **golangci-lint** for static analysis (`task lint`)
+  - Configured with `.golangci.yml` to enable `unparam` linter for unused parameter detection
+  - Includes default linters: `errcheck`, `govet`, `ineffassign`, `staticcheck`, `unused`
 - **testify** for test assertions and better test readability
 - Direct implementations without excessive abstractions
 - Comments in English

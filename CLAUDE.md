@@ -192,6 +192,17 @@ The tool uses `.gorocket.yml` for configuration:
 - Direct implementations without excessive abstractions
 - Comments in English
 
+## Commit Convention
+
+The project follows conventional commit format:
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `chore:` - Maintenance tasks (build, dependencies, tooling)
+- `refactor:` - Code restructuring without functional changes
+- `improve:` - Enhancements to existing features
+- `test:` - Adding or modifying tests
+
 ## Task Management
 
 The project uses go-task for common development workflows:

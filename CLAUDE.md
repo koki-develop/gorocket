@@ -179,7 +179,7 @@ The tool uses `.gorocket.yml` for configuration:
 - Supports Go templates for dynamic values: `{{.Version}}`, `{{.Module}}`
 - Config loading accepts `map[string]any` for template data
 - Configuration management is handled by `internal/config` package
-- Default configuration YAML is embedded in `internal/gorocket/config.go`
+- Default configuration template is provided in `internal/gorocket/config_default.yaml`
 
 ## Build Process Requirements
 
@@ -195,7 +195,7 @@ The tool uses `.gorocket.yml` for configuration:
 - `build`: Build binaries for multiple platforms (requires git tag)
   - `--clean`: Remove dist directory before building
 - `release`: Create GitHub release with built artifacts
-  - `--token`: GitHub token (defaults to GITHUB_TOKEN env var)
+  - `--github-token`: GitHub token (defaults to GITHUB_TOKEN env var)
   - `--draft`: Create a draft release
   - `--clean`: Remove dist directory before building
 - `version`: Display version information
@@ -232,7 +232,7 @@ The project uses go-task for common development workflows:
 ## Release Workflow
 
 1. Create a git tag: `git tag v1.0.0`
-2. Run release command: `gorocket release` or `gorocket release --token <GITHUB_TOKEN>` or `gorocket release --clean`
+2. Run release command: `gorocket release` or `gorocket release --github-token <GITHUB_TOKEN>` or `gorocket release --clean`
 3. This will:
    - Build all configured targets
    - Create GitHub release

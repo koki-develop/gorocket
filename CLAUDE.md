@@ -70,7 +70,7 @@ go test -run TestSpecificFunction ./internal/gorocket/
 The codebase follows a simplified architecture with direct implementations:
 
 ```
-cmd/gorocket/      # CLI entry point
+cmd/               # CLI commands (build.go, init.go, release.go, root.go, version.go)
 internal/
 ├── config/        # Configuration management
 ├── gorocket/      # Core application logic
@@ -81,7 +81,7 @@ internal/
 ```
 
 ### Dependency Flow
-- **CLI** (`cmd/gorocket/`) → **Core** (`internal/gorocket/`)
+- **CLI** (`cmd/`) → **Core** (`internal/gorocket/`)
 - **Core** → **Config** (`internal/config/`) + **External** (`git/`, `github/`, `formula/`)
 - Minimal abstractions - direct implementation preferred
 - External dependencies only where necessary
@@ -94,11 +94,10 @@ internal/
 
 **Core (`internal/gorocket/`)** - Split into responsibility-focused structs:
 - `initer.go`: `Initer` struct handles configuration initialization
-- `builder.go`: `Builder` struct handles cross-platform builds and Formula generation
+- `builder.go`: `Builder` struct handles cross-platform builds, archive creation (tar.gz/zip), and Formula generation
 - `releaser.go`: `Releaser` struct handles GitHub releases and asset uploads
-- `version.go`: Version information management
 - `config.go`: Contains embedded default configuration YAML
-- `archive.go`: Archive creation (tar.gz/zip)
+- `config_default.yaml`: Default configuration template file
 
 **Git (`internal/git/`)**
 - `git.go`: Git operations (tag retrieval, repository info)
@@ -117,49 +116,57 @@ internal/
 - `hash_test.go`: Test cases using testify framework
 
 ### Command Pattern
-Each CLI command directly instantiates the required struct:
+Each CLI command is defined as a package-level variable with global flags:
 ```go
-func newBuildCommand() *cobra.Command {
-    var clean bool
-    
-    cmd := &cobra.Command{
-        Use:   "build",
-        Short: "Build binaries for multiple platforms",
-        RunE: func(cmd *cobra.Command, args []string) error {
-            builder := gorocket.NewBuilder(".gorocket.yml")
-            return builder.Build(gorocket.BuildParams{
-                Clean: clean,
-            })
-        },
-    }
-    
-    cmd.Flags().BoolVar(&clean, "clean", false, "Remove dist directory before building")
-    return cmd
+var (
+    flagBuildClean bool
+)
+
+var buildCmd = &cobra.Command{
+    Use:   "build",
+    Short: "Build binaries for multiple platforms",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        builder := gorocket.NewBuilder(".gorocket.yml")
+        return builder.Build(gorocket.BuildParams{
+            Clean: flagBuildClean,
+        })
+    },
+}
+
+func init() {
+    buildCmd.Flags().BoolVar(&flagBuildClean, "clean", false, "Remove dist directory before building")
+    rootCmd.AddCommand(buildCmd)
 }
 ```
 
 For the release command, token validation happens during initialization:
 ```go
-func newReleaseCommand() *cobra.Command {
-    var token string
-    var draft bool
-    var clean bool
-    
-    cmd := &cobra.Command{
-        Use:   "release",
-        Short: "Create a GitHub release with built artifacts",
-        RunE: func(cmd *cobra.Command, args []string) error {
-            releaser, err := gorocket.NewReleaser(".gorocket.yml", token)
-            if err != nil {
-                return err
-            }
-            return releaser.Release(gorocket.ReleaseParams{
-                Draft: draft,
-                Clean: clean,
-            })
-        },
-    }
-    // ...
+var (
+    flagReleaseDraft       bool
+    flagReleaseGitHubToken string
+    flagReleaseClean       bool
+)
+
+var releaseCmd = &cobra.Command{
+    Use:   "release",
+    Short: "Create a GitHub release with built artifacts",
+    RunE: func(cmd *cobra.Command, args []string) error {
+        releaser, err := gorocket.NewReleaser(".gorocket.yml", flagReleaseGitHubToken)
+        if err != nil {
+            return err
+        }
+        return releaser.Release(gorocket.ReleaseParams{
+            Draft: flagReleaseDraft,
+            Clean: flagReleaseClean,
+        })
+    },
+}
+
+func init() {
+    rootCmd.AddCommand(releaseCmd)
+    releaseCmd.Flags().StringVar(&flagReleaseGitHubToken, "github-token", "", "GitHub token (defaults to GITHUB_TOKEN env var)")
+    releaseCmd.Flags().BoolVar(&flagReleaseDraft, "draft", false, "Create a draft release")
+    releaseCmd.Flags().BoolVar(&flagReleaseClean, "clean", false, "Remove dist directory before building")
 }
 ```
 

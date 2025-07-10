@@ -9,8 +9,7 @@ var (
 	flagReleaseDraft       bool   // --draft
 	flagReleaseGitHubToken string // --github-token
 
-	// TODO: implement
-	// flagReleaseClean bool // --clean
+	flagReleaseClean bool // --clean
 )
 
 var releaseCmd = &cobra.Command{
@@ -23,6 +22,7 @@ var releaseCmd = &cobra.Command{
 		}
 		return releaser.Release(gorocket.ReleaseParams{
 			Draft: flagReleaseDraft,
+			Clean: flagReleaseClean,
 		})
 	},
 }
@@ -31,4 +31,5 @@ func init() {
 	rootCmd.AddCommand(releaseCmd)
 	releaseCmd.Flags().StringVar(&flagReleaseGitHubToken, "github-token", "", "GitHub token (defaults to GITHUB_TOKEN env var)")
 	releaseCmd.Flags().BoolVar(&flagReleaseDraft, "draft", false, "Create a draft release")
+	releaseCmd.Flags().BoolVar(&flagReleaseClean, "clean", false, "Remove dist directory before building")
 }

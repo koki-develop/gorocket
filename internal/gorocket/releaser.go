@@ -14,6 +14,7 @@ import (
 // ReleaseParams contains options for the release command
 type ReleaseParams struct {
 	Draft bool
+	Clean bool
 }
 
 // Releaser provides release functionality
@@ -44,7 +45,7 @@ func NewReleaser(configPath string, token string) (*Releaser, error) {
 // Release creates a GitHub release
 func (r *Releaser) Release(params ReleaseParams) error {
 	// First build the binaries
-	if err := r.builder.Build(BuildParams{Clean: false}); err != nil {
+	if err := r.builder.Build(BuildParams{Clean: params.Clean}); err != nil {
 		return fmt.Errorf("failed to build: %w", err)
 	}
 

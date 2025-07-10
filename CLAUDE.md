@@ -43,6 +43,7 @@ go run main.go init
 git tag v1.0.0  # Create a version tag first
 go run main.go build
 go run main.go build --clean  # Clean dist directory before building
+go run main.go release --clean  # Clean dist directory before building and releasing
 git tag -d v1.0.0  # Clean up test tag
 ```
 
@@ -142,6 +143,7 @@ For the release command, token validation happens during initialization:
 func newReleaseCommand() *cobra.Command {
     var token string
     var draft bool
+    var clean bool
     
     cmd := &cobra.Command{
         Use:   "release",
@@ -151,8 +153,9 @@ func newReleaseCommand() *cobra.Command {
             if err != nil {
                 return err
             }
-            return releaser.Release(gorocket.ReleaseOptions{
+            return releaser.Release(gorocket.ReleaseParams{
                 Draft: draft,
+                Clean: clean,
             })
         },
     }
@@ -187,6 +190,7 @@ The tool uses `.gorocket.yml` for configuration:
 - `release`: Create GitHub release with built artifacts
   - `--token`: GitHub token (defaults to GITHUB_TOKEN env var)
   - `--draft`: Create a draft release
+  - `--clean`: Remove dist directory before building
 - `version`: Display version information
 
 ## Code Quality
@@ -221,7 +225,7 @@ The project uses go-task for common development workflows:
 ## Release Workflow
 
 1. Create a git tag: `git tag v1.0.0`
-2. Run release command: `gorocket release` or `gorocket release --token <GITHUB_TOKEN>`
+2. Run release command: `gorocket release` or `gorocket release --token <GITHUB_TOKEN>` or `gorocket release --clean`
 3. This will:
    - Build all configured targets
    - Create GitHub release

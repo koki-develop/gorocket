@@ -4,5 +4,5 @@ import (
 	_ "embed"
 )
 
-//go:embed .gorocket.yml
+//go:embed config_default.yaml
 var DefaultConfig []byte

@@ -17,14 +17,17 @@ type Config struct {
 	} `yaml:"build"`
 
 	Brew struct {
-		Repository string `yaml:"repository"`
+		Repository struct {
+			Owner string `yaml:"owner"`
+			Name  string `yaml:"name"`
+		} `yaml:"repository"`
 	} `yaml:"brew"`
 }
 
 // Target represents a build target
 type Target struct {
-	OS   string `yaml:"os"`
-	Arch string `yaml:"arch"`
+	OS   string   `yaml:"os"`
+	Arch []string `yaml:"arch"`
 }
 
 // LoadConfig loads the configuration file

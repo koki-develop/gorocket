@@ -120,8 +120,9 @@ func (r *Releaser) Release(params ReleaseParams) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if cfg.Brew.Repository != "" {
-		if err := r.updateTapRepository(cfg.Brew.Repository); err != nil {
+	if cfg.Brew.Repository.Owner != "" && cfg.Brew.Repository.Name != "" {
+		tapRepository := fmt.Sprintf("%s/%s", cfg.Brew.Repository.Owner, cfg.Brew.Repository.Name)
+		if err := r.updateTapRepository(tapRepository); err != nil {
 			return fmt.Errorf("failed to update tap repository: %w", err)
 		}
 	}

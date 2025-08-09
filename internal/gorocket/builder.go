@@ -107,32 +107,34 @@ func (b *Builder) Build(params BuildParams) error {
 	// Build each target
 	var outputs []*BuildOutput
 	for _, target := range cfg.Build.Targets {
-		fmt.Printf("Building %s/%s...\n", target.OS, target.Arch)
+		for _, arch := range target.Arch {
+			fmt.Printf("Building %s/%s...\n", target.OS, arch)
 
-		output, err := b.buildBinary(buildInfo.Module, target, cfg.Build.Ldflags)
-		if err != nil {
-			return fmt.Errorf("failed to build %s/%s: %w", target.OS, target.Arch, err)
+			output, err := b.buildBinary(buildInfo.Module, target.OS, arch, cfg.Build.Ldflags)
+			if err != nil {
+				return fmt.Errorf("failed to build %s/%s: %w", target.OS, arch, err)
+			}
+
+			// Create archive
+			archivePath, err := b.createArchive(output)
+			if err != nil {
+				return fmt.Errorf("failed to create archive: %w", err)
+			}
+
+			output.ArchivePath = archivePath
+			fmt.Printf("Created %s\n", archivePath)
+
+			// Remove binary file
+			if err := os.Remove(output.BinaryPath); err != nil {
+				return fmt.Errorf("failed to remove binary: %w", err)
+			}
+
+			outputs = append(outputs, output)
 		}
-
-		// Create archive
-		archivePath, err := b.createArchive(output)
-		if err != nil {
-			return fmt.Errorf("failed to create archive: %w", err)
-		}
-
-		output.ArchivePath = archivePath
-		fmt.Printf("Created %s\n", archivePath)
-
-		// Remove binary file
-		if err := os.Remove(output.BinaryPath); err != nil {
-			return fmt.Errorf("failed to remove binary: %w", err)
-		}
-
-		outputs = append(outputs, output)
 	}
 
 	// Generate Homebrew Formula if configured
-	if cfg.Brew.Repository != "" {
+	if cfg.Brew.Repository.Owner != "" && cfg.Brew.Repository.Name != "" {
 		result := &BuildResult{
 			Version: buildInfo.Version,
 			Outputs: outputs,
@@ -231,10 +233,10 @@ func (b *Builder) generateFormula(buildInfo *BuildInfo, result *BuildResult) err
 }
 
 // buildBinary builds a single binary
-func (b *Builder) buildBinary(module string, target config.Target, ldflags string) (*BuildOutput, error) {
+func (b *Builder) buildBinary(module, goos, goarch, ldflags string) (*BuildOutput, error) {
 	// Determine output file name
 	binaryName := filepath.Base(module)
-	if target.OS == "windows" {
+	if goos == "windows" {
 		binaryName += ".exe"
 	}
 	binaryPath := filepath.Join("dist", binaryName)
@@ -250,8 +252,8 @@ func (b *Builder) buildBinary(module string, target config.Target, ldflags strin
 	// Execute command
 	cmd := exec.Command("go", args...)
 	cmd.Env = append(os.Environ(),
-		fmt.Sprintf("GOOS=%s", target.OS),
-		fmt.Sprintf("GOARCH=%s", target.Arch),
+		fmt.Sprintf("GOOS=%s", goos),
+		fmt.Sprintf("GOARCH=%s", goarch),
 	)
 
 	// Capture error output
@@ -263,8 +265,8 @@ func (b *Builder) buildBinary(module string, target config.Target, ldflags strin
 	}
 
 	return &BuildOutput{
-		OS:         target.OS,
-		Arch:       target.Arch,
+		OS:         goos,
+		Arch:       goarch,
 		BinaryPath: binaryPath,
 	}, nil
 }

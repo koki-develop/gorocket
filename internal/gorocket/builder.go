@@ -20,7 +20,8 @@ import (
 
 // BuildParams contains options for the build command
 type BuildParams struct {
-	Clean bool
+	Clean      bool
+	AllowDirty bool
 }
 
 // BuildInfo holds build information
@@ -48,6 +49,7 @@ type Builder struct {
 	configPath string
 	git        *git.Client
 	formula    *formula.Client
+	allowDirty bool
 }
 
 // NewBuilder creates a new Builder instance
@@ -61,6 +63,9 @@ func NewBuilder(configPath string) *Builder {
 
 // Build executes cross-platform builds
 func (b *Builder) Build(params BuildParams) error {
+	// Set allowDirty flag
+	b.allowDirty = params.AllowDirty
+
 	// Get build info
 	buildInfo, err := b.getBuildInfo()
 	if err != nil {
@@ -156,7 +161,13 @@ func (b *Builder) getBuildInfo() (*BuildInfo, error) {
 
 	version, err := b.git.GetHeadTag()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get version: %w", err)
+		if b.allowDirty {
+			// Use development version when --allow-dirty is specified
+			version = "v0.0.0-dev"
+			fmt.Println("Warning: No git tag found, using development version v0.0.0-dev")
+		} else {
+			return nil, fmt.Errorf("failed to get version: %w", err)
+		}
 	}
 
 	return &BuildInfo{
@@ -304,7 +315,12 @@ func (b *Builder) createArchive(output *BuildOutput) (string, error) {
 	// Get version from git
 	version, err := b.git.GetHeadTag()
 	if err != nil {
-		return "", fmt.Errorf("failed to get version: %w", err)
+		if b.allowDirty {
+			// Use development version when --allow-dirty is specified
+			version = "v0.0.0-dev"
+		} else {
+			return "", fmt.Errorf("failed to get version: %w", err)
+		}
 	}
 
 	// Determine archive name
